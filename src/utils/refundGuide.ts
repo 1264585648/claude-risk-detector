@@ -78,7 +78,7 @@ export const BANK_DISPUTE_TEMPLATE = [
 ].join('\n');
 
 export const STORE_CHAT_TEMPLATE = [
-  '【Apple App Store / Google Play 在线客服沟通小作文】',
+  '【Apple App Store / Google Play 在线客服申诉说明】',
   '',
   '适用情境：用于苹果 Report a Problem 详细说明，或 Google Play 帮助中心 Live Chat 在线真人客服聊天框',
   '',
@@ -122,7 +122,7 @@ export const REFUND_CHANNELS: RefundChannel[] = [
     rateText: '成功率中等 (60%~70%)',
     badge: '需切人工',
     badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-    description: '通过 Android 客户端走 Google Play 支付。近期 48 小时内的系统自助退款拒审率增高，社区核心秘笈是转接真人客服。',
+    description: '通过 Android 客户端走 Google Play 支付。近期 48 小时内的系统自助退款拒审率增高，建议在帮助中心转接 Google 在线真人客服。',
     portalUrl: 'https://support.google.com/googleplay',
     portalText: '访问 Google Play 帮助中心',
     steps: [

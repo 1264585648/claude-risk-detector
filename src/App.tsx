@@ -42,7 +42,6 @@ import {
   REFUND_FAQS
 } from './utils/refundGuide';
 import { generateReportPoster } from './utils/poster';
-import { DarioCompanion } from './components/DarioCompanion';
 import { DiagnosisFixModule } from './components/DiagnosisFixModule';
 
 const SubscriptionTab = lazy(() =>
@@ -165,7 +164,7 @@ export default function App() {
                 </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">
-                Claude 从入门到维权：本地网络防封自测、300+ 虚拟卡避坑与申诉退款全流程指南
+                Claude 环境防封自测、虚拟卡开通与封禁申诉 / 交易争议退款指南
               </p>
             </div>
           </div>
@@ -179,7 +178,7 @@ export default function App() {
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              环境体检 & 修复
+              环境诊断与修复
             </button>
             <button
               onClick={() => setActiveTab('subscription')}
@@ -190,7 +189,7 @@ export default function App() {
               }`}
             >
               <CreditCard className="w-4 h-4" />
-              <span>入门订阅与选卡</span>
+              <span>支付渠道与选卡</span>
             </button>
             <button
               onClick={() => setActiveTab('guide')}
@@ -201,7 +200,7 @@ export default function App() {
               }`}
             >
               <Scale className="w-4 h-4" />
-              <span>避坑与维权申诉</span>
+              <span>申诉与退款维权</span>
             </button>
             <button
               onClick={() => setActiveTab('solution')}
@@ -212,7 +211,7 @@ export default function App() {
               }`}
             >
               <Zap className="w-4 h-4" />
-              <span>稳定进阶方案</span>
+              <span>长效稳定方案</span>
             </button>
           </nav>
         </div>
@@ -222,14 +221,15 @@ export default function App() {
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         {activeTab === 'web' && (
           <div className="space-y-6">
-            {/* 核心仪表盘卡片 */}
-            <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/80 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+            {/* 核心控制台：总体评分与网络出口画像 */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              {/* 左侧：健康安全评分与总体结论 */}
+              <div className="lg:col-span-6 relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70 p-6 backdrop-blur-md shadow-xl flex flex-col justify-between">
+                <div className="absolute top-0 right-0 -mr-16 -mt-16 w-60 h-60 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
-                {/* 评分圆环与大字 */}
-                <div className="flex items-center gap-6 sm:gap-8">
-                  <div className="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-5 sm:gap-6">
+                  {/* 评分圆环 */}
+                  <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
                       <circle
                         cx="60"
@@ -262,16 +262,20 @@ export default function App() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                      <span className="text-3xl font-extrabold tracking-tight">
                         {isScanning ? '...' : overall ? overall.totalScore : 0}
                       </span>
-                      <span className="text-[11px] text-slate-400 font-medium">/ 100 安全分</span>
+                      <span className="text-[10px] text-slate-400 font-medium">/ 100 安全分</span>
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                  {/* 诊断结论文本 */}
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] px-2 py-0.5 rounded font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                        {isScanning ? '检测中' : overall?.riskLevel || 'READY'}
+                      </span>
+                      <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-100 truncate">
                         {isScanning
                           ? '正在分析指纹与网络特征...'
                           : overall
@@ -279,33 +283,116 @@ export default function App() {
                           : '环境体检就绪'}
                       </h2>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
+                    <p className="text-xs text-slate-400 leading-relaxed">
                       {overall
                         ? overall.description
-                        : '100% 在本地沙箱中完成运算，安全检测系统时区、网络出口、设备字体与 WebRTC 穿透等关键指标。'}
+                        : '本地沙箱环境安全探测，覆盖系统时区、公网出口、字体指纹与 WebRTC 穿透等核心风控要素。'}
                     </p>
                   </div>
                 </div>
 
-                {/* 操作按键 */}
-                <div className="flex flex-wrap sm:flex-col gap-3 w-full md:w-auto">
+                {/* 控制台操作按钮 */}
+                <div className="flex items-center gap-3 pt-5 mt-5 border-t border-slate-800/80">
                   <button
                     onClick={runFullScan}
                     disabled={isScanning}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20 active:scale-95 disabled:opacity-50"
                   >
-                    <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-                    <span>{isScanning ? '正在探测...' : '重新检测'}</span>
+                    <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
+                    <span>{isScanning ? '正在探测...' : '重新检测环境'}</span>
                   </button>
 
                   <button
                     onClick={handleGeneratePoster}
                     disabled={isScanning || !overall}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 transition"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition"
                   >
-                    <Download className="w-4 h-4" />
-                    <span>{isGeneratingPoster ? '正在绘制长图...' : '生成体检报告长图'}</span>
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{isGeneratingPoster ? '正在绘制...' : '生成体检长图'}</span>
                   </button>
+                </div>
+              </div>
+
+              {/* 右侧：4 项网络出口关键画像 (2x2 网格) */}
+              <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between">
+                  <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
+                    <Globe className="w-4 h-4 text-sky-400" />
+                    <span>公网出口 IP</span>
+                  </div>
+                  <div className="font-mono text-base font-semibold text-slate-200 truncate py-1">
+                    {network.status === 'failed' ? (
+                      <span className="text-amber-400 text-xs font-normal">未能探测 (检查网络/代理)</span>
+                    ) : (
+                      network.ip
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    {network.isp ? network.isp : '正在查询运营商...'}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Wifi className="w-4 h-4 text-emerald-400" />
+                      <span>出口地区与节点</span>
+                    </div>
+                    {network.isTzMismatch && (
+                      <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px]">
+                        时区未对齐
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-base font-semibold text-slate-200 truncate py-1">
+                    {network.country || '探测中...'} {network.city ? `• ${network.city}` : ''}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    出口时区: {network.timezone || '未知'}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Clock className="w-4 h-4 text-amber-400" />
+                      <span>本地系统时区</span>
+                    </div>
+                    {network.isTzMismatch ? (
+                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px]">
+                        需调整
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">
+                        匹配良好
+                      </span>
+                    )}
+                  </div>
+                  <div className="font-mono text-base font-semibold text-slate-200 truncate py-1">
+                    {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    {network.isTzMismatch ? '与出口地理时区存在差异' : '时区与出口节点对齐'}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between">
+                  <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
+                    <Type className="w-4 h-4 text-purple-400" />
+                    <span>IP 线路属性</span>
+                  </div>
+                  <div className="text-base font-semibold text-slate-200 truncate py-1">
+                    {network.status === 'failed' ? (
+                      <span className="text-slate-500 text-xs">无法判定</span>
+                    ) : network.isDatacenter ? (
+                      <span className="text-amber-400">数据中心机房段</span>
+                    ) : (
+                      <span className="text-emerald-400">家庭/商业宽带 (原生)</span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    {network.isDatacenter ? '机房段易被标记为代理' : '优质原生出口'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -317,81 +404,6 @@ export default function App() {
               network={network}
               isScanning={isScanning}
             />
-
-            {/* 安全诊断顾问卡片 */}
-            <DarioCompanion
-              score={overall?.totalScore ?? 0}
-              riskLevel={overall?.riskLevel ?? 'SAFE'}
-              isScanning={isScanning}
-              verdict={overall?.verdict ?? '环境体检就绪'}
-            />
-
-            {/* 网络与出口环境画像 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40">
-                <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
-                  <Globe className="w-4 h-4 text-sky-400" />
-                  <span>公网出口 IP</span>
-                </div>
-                <div className="font-mono text-base font-semibold text-slate-200 truncate">
-                  {network.status === 'failed' ? (
-                    <span className="text-amber-400 text-sm font-normal">未能获取 (可开启全局模式重试)</span>
-                  ) : (
-                    network.ip
-                  )}
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <Wifi className="w-4 h-4 text-emerald-400" />
-                    <span>出口属地与服务商</span>
-                  </div>
-                  {network.isTzMismatch && (
-                    <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px]">
-                      时区差异 ⚠️
-                    </span>
-                  )}
-                </div>
-                <div className="text-base font-semibold text-slate-200 truncate">
-                  {network.country} {network.city ? `• ${network.city}` : ''}
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <Clock className="w-4 h-4 text-amber-400" />
-                    <span>本地系统时区</span>
-                  </div>
-                  {network.isTzMismatch && (
-                    <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px]">
-                      建议同步
-                    </span>
-                  )}
-                </div>
-                <div className="text-base font-semibold text-slate-200 truncate">
-                  {Intl.DateTimeFormat().resolvedOptions().timeZone}
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40">
-                <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
-                  <Type className="w-4 h-4 text-purple-400" />
-                  <span>IP 线路属性</span>
-                </div>
-                <div className="text-base font-semibold text-slate-200 truncate">
-                  {network.status === 'failed' ? (
-                    <span className="text-slate-400 text-sm">未能探测</span>
-                  ) : network.isDatacenter ? (
-                    <span className="text-amber-400">数据中心机房段 (多共用)</span>
-                  ) : (
-                    <span className="text-emerald-400">家庭/企业原生宽带</span>
-                  )}
-                </div>
-              </div>
-            </div>
 
             {/* 详细指标清单 */}
             <div>
@@ -497,29 +509,29 @@ export default function App() {
                 })}
               </div>
 
-              {/* 引导至订阅与卡台的快捷横幅 */}
-              <div className="p-5 rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/80 to-slate-950 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+              {/* 引导至支付渠道与选卡指南 */}
+              <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
                 <div className="flex items-center gap-3.5">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
                     <CreditCard className="w-5 h-5 text-amber-400" />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                      <span>体检就绪？下一步：安全开通 Claude Pro / Code 订阅</span>
+                      <span>环境自测就绪？下一步：海外支付渠道与开卡指南</span>
                       <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        连接 306+ 款虚拟卡
+                        收录 306 款卡片
                       </span>
                     </div>
                     <div className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                      已连接底层 <code>card-catalog</code> 虚拟卡数据库，涵盖免 KYC 选卡、Stripe 雷达避坑与 0% 免税州地址生成。
+                      提供主流支付渠道评测、虚拟卡检索、免税州账单地址生成与 Stripe 风控防范建议。
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => setActiveTab('subscription')}
-                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-md shadow-amber-500/20"
                 >
-                  <span>前往选卡开通全景</span>
+                  <span>查看支付与选卡指南</span>
                   <span>→</span>
                 </button>
               </div>
@@ -533,7 +545,7 @@ export default function App() {
             fallback={
               <div className="p-12 text-center text-slate-400">
                 <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-sm">正在加载 306+ 虚拟卡与选卡避坑全景图谱...</p>
+                <p className="text-sm">正在加载 306 款虚拟卡与发卡机构检索数据...</p>
               </div>
             }
           >
@@ -563,7 +575,7 @@ export default function App() {
                 <p className="text-xs sm:text-sm text-slate-400 mt-1 leading-relaxed">
                   {guideSubTab === 'appeal'
                     ? '区分“节点受限”与“真正封号”，提供官方人工复核高过率中英文申诉邮件模版。'
-                    : '汇总技术社区（Linux Do / V2EX / Reddit）实战经验：拆解 Apple、Google、Stripe 官网直刷与银行争议拒付 (Chargeback) 避坑维权策略。'}
+                    : '汇总技术社区实战经验：拆解 Apple、Google、Stripe 官网直刷与银行争议拒付 (Chargeback) 申诉与维权策略。'}
                 </p>
               </div>
 
@@ -591,7 +603,7 @@ export default function App() {
                   <DollarSign className="w-3.5 h-3.5" />
                   <span>退款维权 (Refund)</span>
                   <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-300 font-medium">
-                    社区实战
+                    争议仲裁 / 拒付
                   </span>
                 </button>
               </div>
@@ -670,7 +682,7 @@ export default function App() {
                         刚付费订阅就被封号，官方申诉未获回复或被拒绝？
                       </div>
                       <div className="text-xs text-slate-400">
-                        不要自认倒霉！社区已验证苹果 App Store、Google Play 与信用卡 Chargeback 争议拒付追回路径。
+                        若官方客服驳回或未及时回复，可通过发卡行交易争议（Chargeback）或移动应用商店申请介入退款。
                       </div>
                     </div>
                   </div>
@@ -692,10 +704,10 @@ export default function App() {
                 <div className="p-5 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2">
                   <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
                     <Scale className="w-4 h-4" />
-                    <span>社区核心共识：退款成败 90% 取决于你当初选择的支付渠道</span>
+                    <span>核心考量：退款成功率主要取决于所采用的支付渠道与结算规则</span>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Anthropic 官方对封号用户的退款态度非常冷淡，直接找官方客服往往陷入漫长已读不回或模板拒信。因此，<strong>维权的核心逻辑是利用支付通道的上一级规则（Apple / Google / 国际卡组织）进行降维维权</strong>。
+                    Anthropic 官方对受限账号的退款请求多采用自动化模板回复。当商户沟通受阻时，可依托支付渠道的上级消费者保障规则（Apple、Google 或国际卡组织交易争议仲裁）申请退款。
                   </p>
                 </div>
 
@@ -770,16 +782,16 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* 实用退款维权小作文模版库 */}
+                {/* 申诉说明书与争议拒付证据模板库 */}
                 <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <h4 className="font-bold text-slate-100 text-base flex items-center gap-2">
                         <FileText className="w-4 h-4 text-emerald-400" />
-                        <span>退款维权小作文与证据链模板库</span>
+                        <span>申诉说明书与争议拒付证据模板库 (Dispute Templates)</span>
                       </h4>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        按维权进度选用对应模板，支持一键复制后根据自身真实情况修改填空
+                        根据当前申诉阶段选用对应模板，支持一键复制并按实际情况替换方括号字段
                       </p>
                     </div>
 
@@ -857,11 +869,11 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 社区避坑高频问答 (FAQ) */}
+                {/* 社区高频问答 (FAQ) */}
                 <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-4">
                   <h4 className="font-bold text-slate-100 text-base flex items-center gap-2">
                     <HelpCircle className="w-4 h-4 text-amber-400" />
-                    <span>社区血泪教训与退款避坑高频问答 (FAQ)</span>
+                    <span>高频问答与退款避坑要点 (FAQ)</span>
                   </h4>
 
                   <div className="space-y-3">

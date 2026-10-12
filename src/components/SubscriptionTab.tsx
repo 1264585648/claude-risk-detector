@@ -8,7 +8,6 @@ import {
   Copy,
   ExternalLink,
   MapPin,
-  Sparkles,
   AlertTriangle,
   Info,
   DollarSign,
@@ -96,25 +95,25 @@ export function SubscriptionTab() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>一站式全生命周期订阅枢纽</span>
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>海外支付与虚拟卡支持清单</span>
               </span>
               <span className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
-                连接本地 card-catalog 数据库 (306+ 卡片)
+                收录 306 款发卡机构与卡片
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
-              Claude / Claude Code 订阅通道、虚拟卡台与 KYC 避坑全景指南
+              Claude / Claude Code 支付渠道、虚拟卡实测与风控避坑指南
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
-              解决国内开发者在订阅 Claude Pro / Max 时最头疼的“无境外信用卡、Stripe 秒拒、KYC 触发连坐、免税账单地址配置”全套闭环难题。
+              梳理主流支付渠道优劣势、306 款虚拟卡实测支持情况、Stripe 风控机制与免税州账单地址配置。
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-2 shrink-0 bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-center">
             <div className="px-3 py-1">
-              <div className="text-lg font-bold text-amber-400">306+</div>
-              <div className="text-[11px] text-slate-400">收录虚拟卡台</div>
+              <div className="text-lg font-bold text-amber-400">306 款</div>
+              <div className="text-[11px] text-slate-400">收录发卡机构</div>
             </div>
             <div className="px-3 py-1 border-x border-slate-800">
               <div className="text-lg font-bold text-emerald-400">94 款</div>
@@ -138,7 +137,7 @@ export function SubscriptionTab() {
             }`}
           >
             <CreditCard className="w-3.5 h-3.5" />
-            <span>精选卡台与支付对比</span>
+            <span>支付渠道横评与常用卡</span>
           </button>
 
           <button
@@ -150,7 +149,7 @@ export function SubscriptionTab() {
             }`}
           >
             <ShieldAlert className="w-3.5 h-3.5" />
-            <span>KYC 触发机制与规避秘籍</span>
+            <span>风控机制与避坑指引</span>
           </button>
 
           <button
@@ -162,7 +161,7 @@ export function SubscriptionTab() {
             }`}
           >
             <MapPin className="w-3.5 h-3.5" />
-            <span>免税州账单地址生成器 (0% 税)</span>
+            <span>免税州账单地址 (0% 消费税)</span>
           </button>
 
           <button
@@ -174,7 +173,7 @@ export function SubscriptionTab() {
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            <span>前置护航：纯净邮箱与接码方案</span>
+            <span>注册邮箱与境外手机号参考</span>
           </button>
         </div>
       </div>
@@ -189,7 +188,7 @@ export function SubscriptionTab() {
                 <DollarSign className="w-4 h-4 text-amber-400" />
                 <span>主流 Claude 订阅支付方式深度横评</span>
               </h3>
-              <span className="text-xs text-slate-400">社区核心共识：通道选对，风控减半</span>
+              <span className="text-xs text-slate-400">支付渠道与风控特点对照</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -233,16 +232,16 @@ export function SubscriptionTab() {
             </div>
           </div>
 
-          {/* 精选特荐虚拟卡榜单 */}
+          {/* 常用虚拟卡榜单 */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                   <Star className="w-4 h-4 text-amber-400" />
-                  <span>Claude / AI 订阅特荐虚拟卡池 (实测高可用)</span>
+                  <span>常用虚拟卡实测与支持特性</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  基于团队整理的 306 款卡库大数据，根据开卡门槛、充值便利度、Apple Pay 兼容性与 Stripe 通过率精选
+                  根据开卡门槛、充值便利度、Apple Pay 兼容性与实测通过率汇总
                 </p>
               </div>
             </div>
@@ -336,10 +335,10 @@ export function SubscriptionTab() {
               <div>
                 <h4 className="font-bold text-slate-100 text-base flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-emerald-400" />
-                  <span>全量虚拟卡与 Web3 卡台目录 (共收录 {ALL_VIRTUAL_CARDS.length} 款)</span>
+                  <span>全量虚拟卡与发卡机构检索 (共收录 {ALL_VIRTUAL_CARDS.length} 款)</span>
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  已无缝连接本地 <code>card-catalog</code> 数据库，支持按 KYC 等级与名称即时检索开卡成本与官网
+                  支持按认证要求 (KYC)、卡片名称或发行机构快速检索开卡费用、支持网络及官方站点
                 </p>
               </div>
 
@@ -347,7 +346,7 @@ export function SubscriptionTab() {
                 onClick={() => setShowFullCatalog(!showFullCatalog)}
                 className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 self-start sm:self-auto"
               >
-                <span>{showFullCatalog ? '收起全量卡库' : '展开全量卡库浏览'}</span>
+                <span>{showFullCatalog ? '收起卡片目录' : '展开全部卡片检索'}</span>
                 {showFullCatalog ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </button>
             </div>
@@ -524,7 +523,7 @@ export function SubscriptionTab() {
         </div>
       )}
 
-      {/* 子分栏 2：KYC 触发策略与规避秘籍 */}
+      {/* 子分栏 2：风控触发机制与避坑操作指引 */}
       {subTab === 'kyc' && (
         <div className="space-y-6">
           {/* 三层风控机制解析 */}
@@ -532,10 +531,10 @@ export function SubscriptionTab() {
             <div>
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-amber-400" />
-                <span>AI 订阅全链路“三层风控机制”解构</span>
+                <span>海外订阅三层风控机制拆解</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                搞清楚你究竟在被谁风控：很多用户误以为“封号全是 Anthropic 针对”，实际上 80% 触发自支付网关与发卡行
+                风控拦截通常来自三个独立层面：支付网关 (Stripe)、发卡机构合规审查与 Anthropic 账号风控模型
               </p>
             </div>
 
@@ -563,10 +562,10 @@ export function SubscriptionTab() {
             <div>
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-400" />
-                <span>6 大核心 KYC / 封禁高危触发行为 (Red Flags)</span>
+                <span>6 项常见高危触发行为与风控诱因 (Red Flags)</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                系统风控模型不会告知拒绝原因，以下是社区数千起封号案例沉淀出的黑盒规则
+                支付网关通常不直接披露拒绝详情，以下为常见触发机制与应对建议
               </p>
             </div>
 
@@ -584,7 +583,7 @@ export function SubscriptionTab() {
                           : 'bg-sky-500/10 text-sky-400 border-sky-500/20'
                       }`}
                     >
-                      {t.severity === 'CRITICAL' ? '最高危·秒封' : t.severity === 'HIGH' ? '高危·拒付' : '中危·加权'}
+                      {t.severity === 'CRITICAL' ? '高风险·阻断' : t.severity === 'HIGH' ? '中高风险·拒付' : '提示·可能加权'}
                     </span>
                   </div>
 
@@ -605,15 +604,15 @@ export function SubscriptionTab() {
             </div>
           </div>
 
-          {/* 6 大黄金规避秘籍 */}
+          {/* 6 项推荐操作规范 */}
           <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-4">
             <div>
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>6 大黄金规避秘籍 (零风控长期稳定订阅标准)</span>
+                <span>6 项推荐操作规范 (提高支付通过率与稳定性)</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                严格遵循以下操作规范，可将订阅扣费成功率提升至 95% 以上，杜绝连坐
+                遵循以下操作规范，可降低风控拦截概率并避免多账号关联风险
               </p>
             </div>
 
@@ -783,18 +782,18 @@ export function SubscriptionTab() {
         </div>
       )}
 
-      {/* 子分栏 4：前置护航：纯净邮箱与接码方案 */}
+      {/* 子分栏 4：注册邮箱与境外手机号参考 */}
       {subTab === 'account' && (
         <div className="space-y-6">
-          {/* 邮箱选择黑红榜 */}
+          {/* 邮箱选择建议 */}
           <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-4">
             <div>
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <Mail className="w-4 h-4 text-amber-400" />
-                <span>注册邮箱选型黑红榜 (防连坐第一道关卡)</span>
+                <span>注册邮箱服务商选型建议</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Claude 账号与注册邮箱强绑定。使用国内邮箱犹如“自投罗网”，在注册甚至后续绑卡时会被系统批量扫荡
+                Claude 账号与注册邮箱强绑定。使用国内常规邮箱服务商极易在注册或绑卡阶段触发批量风控标记。
               </p>
             </div>
 

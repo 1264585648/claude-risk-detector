@@ -98,8 +98,8 @@ export const KYC_MITIGATION_RULES: KycMitigationRule[] = [
   },
   {
     num: '02',
-    title: '借道 Apple Pay 硬件安全区“降维避险”',
-    badge: '终极秘籍',
+    title: '优先采用 Apple Pay 硬件级安全支付',
+    badge: '推荐首选',
     summary: '避开网页端 Stripe 的激进 JavaScript 指纹探针，利用 Apple 原生 Secure Enclave 签名支付。',
     details: [
       '将虚拟卡绑定至美区 Apple ID（如 RedotPay、Bybit Card、Bitget Wallet Card 等优质卡段均支持）。',
