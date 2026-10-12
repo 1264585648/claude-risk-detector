@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import {
   ShieldAlert,
   ShieldCheck,
   RefreshCw,
-  Terminal,
   Download,
   Copy,
   Check,
@@ -16,7 +15,6 @@ import {
   ChevronUp,
   FileText,
   Zap,
-  Info,
   DollarSign,
   CreditCard,
   ExternalLink,
@@ -35,7 +33,7 @@ import {
   calculateOverall
 } from './utils/detector';
 import type { DetectionItem, NetworkProfile, OverallResult } from './types';
-import { POWERSHELL_CLI_SCRIPT, BASH_CLI_SCRIPT, APPEAL_TEMPLATE } from './utils/cliGuide';
+import { APPEAL_TEMPLATE } from './utils/cliGuide';
 import {
   OFFICIAL_REFUND_TEMPLATE,
   BANK_DISPUTE_TEMPLATE,
@@ -45,10 +43,14 @@ import {
 } from './utils/refundGuide';
 import { generateReportPoster } from './utils/poster';
 import { DarioCompanion } from './components/DarioCompanion';
-import { SubscriptionTab } from './components/SubscriptionTab';
+import { DiagnosisFixModule } from './components/DiagnosisFixModule';
+
+const SubscriptionTab = lazy(() =>
+  import('./components/SubscriptionTab').then((m) => ({ default: m.SubscriptionTab }))
+);
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'web' | 'subscription' | 'cli' | 'guide' | 'solution'>('web');
+  const [activeTab, setActiveTab] = useState<'web' | 'subscription' | 'guide' | 'solution'>('web');
   const [isScanning, setIsScanning] = useState(false);
   const [items, setItems] = useState<DetectionItem[]>([]);
   const [network, setNetwork] = useState<NetworkProfile>({
@@ -144,11 +146,6 @@ export default function App() {
     }
   };
 
-  const isWindows = navigator.userAgent.includes('Windows');
-  const quickFixTzCmd = isWindows
-    ? 'tzutil /s "Eastern Standard Time"'
-    : 'sudo systemsetup -settimezone "America/New_York"';
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
       {/* 顶部通栏导航 */}
@@ -161,14 +158,14 @@ export default function App() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent">
-                  Claude Shield
+                  Claude 从入门到维权
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">
-                  环境安全诊断
+                  自测 · 避坑 · 维权
                 </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">
-                专为开发者打造的 Claude / Claude Code 本地网络与防封指纹自测工具
+                Claude 从入门到维权：本地网络防封自测、300+ 虚拟卡避坑与申诉退款全流程指南
               </p>
             </div>
           </div>
@@ -182,7 +179,7 @@ export default function App() {
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              环境体检
+              环境体检 & 修复
             </button>
             <button
               onClick={() => setActiveTab('subscription')}
@@ -193,38 +190,29 @@ export default function App() {
               }`}
             >
               <CreditCard className="w-4 h-4" />
-              <span>订阅与卡台</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('cli')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
-                activeTab === 'cli'
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <Terminal className="w-4 h-4" />
-              <span>Claude Code 终端</span>
+              <span>入门订阅与选卡</span>
             </button>
             <button
               onClick={() => setActiveTab('guide')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
                 activeTab === 'guide'
                   ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              避坑与申诉
+              <Scale className="w-4 h-4" />
+              <span>避坑与维权申诉</span>
             </button>
             <button
               onClick={() => setActiveTab('solution')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
                 activeTab === 'solution'
                   ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              稳定替代方案
+              <Zap className="w-4 h-4" />
+              <span>稳定进阶方案</span>
             </button>
           </nav>
         </div>
@@ -320,42 +308,15 @@ export default function App() {
                   </button>
                 </div>
               </div>
-
-              {/* 关键异常一键解决提醒条 */}
-              {network.isTzMismatch && (
-                <div className="mt-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-                    <div className="text-xs sm:text-sm text-rose-200">
-                      <strong className="font-semibold text-rose-400 block mb-0.5">
-                        优先排查：出口 IP 属地与系统本地时区不一致
-                      </strong>
-                      当前出口位于海外（{network.country}），但电脑系统依然处于东八区中国时区（{Intl.DateTimeFormat().resolvedOptions().timeZone}）。这是触发平台代理访问限制的高频特征。
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
-                    <button
-                      onClick={() => copyToClipboard(quickFixTzCmd, 'banner-fix')}
-                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/40 text-xs font-medium transition"
-                    >
-                      {copiedKey === 'banner-fix' ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                      <span>
-                        {copiedKey === 'banner-fix'
-                          ? '已复制美东时区命令'
-                          : isWindows
-                          ? '复制 Windows 改美东时区命令'
-                          : '复制 macOS 改美东时区命令'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* 诊断结论与一键复制修复版 */}
+            <DiagnosisFixModule
+              overall={overall}
+              items={items}
+              network={network}
+              isScanning={isScanning}
+            />
 
             {/* 安全诊断顾问卡片 */}
             <DarioCompanion
@@ -558,7 +519,7 @@ export default function App() {
                   onClick={() => setActiveTab('subscription')}
                   className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
                 >
-                  <span>前往订阅与卡台全景</span>
+                  <span>前往选卡开通全景</span>
                   <span>→</span>
                 </button>
               </div>
@@ -566,97 +527,21 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: 订阅方式、虚拟卡台与 KYC 避坑全景 */}
-        {activeTab === 'subscription' && <SubscriptionTab />}
-
-        {/* Tab 3: Claude Code 专属自检 */}
-        {activeTab === 'cli' && (
-          <div className="space-y-6">
-            <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
-              <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2 mb-2">
-                <Terminal className="w-5 h-5 text-amber-400" />
-                <span>Claude Code 终端环境自测</span>
-              </h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Claude Code 命令行工具在本地执行时，会直接读取操作系统的终端环境变量、本地 Git 邮箱与时区等参数。
-                复制下方自测命令在终端运行，即可快速检查本地命令行环境是否合规。
-              </p>
-            </div>
-
-            {/* Windows PowerShell 脚本 */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-sky-500"></span>
-                  <span className="font-semibold text-slate-200 text-sm">
-                    Windows 用户 (PowerShell 自测脚本)
-                  </span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(POWERSHELL_CLI_SCRIPT, 'ps-script')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition"
-                >
-                  {copiedKey === 'ps-script' ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                  <span>{copiedKey === 'ps-script' ? '已复制完整脚本' : '复制代码'}</span>
-                </button>
+        {/* Tab 2: 入门订阅方式、虚拟卡台与 KYC 避坑全景 */}
+        {activeTab === 'subscription' && (
+          <Suspense
+            fallback={
+              <div className="p-12 text-center text-slate-400">
+                <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm">正在加载 306+ 虚拟卡与选卡避坑全景图谱...</p>
               </div>
-              <pre className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto max-h-60">
-                <code>{POWERSHELL_CLI_SCRIPT}</code>
-              </pre>
-            </div>
-
-            {/* macOS / Linux Bash 脚本 */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-                  <span className="font-semibold text-slate-200 text-sm">
-                    macOS / Linux 用户 (Bash 自测脚本)
-                  </span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(BASH_CLI_SCRIPT, 'bash-script')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition"
-                >
-                  {copiedKey === 'bash-script' ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                  <span>{copiedKey === 'bash-script' ? '已复制完整脚本' : '复制代码'}</span>
-                </button>
-              </div>
-              <pre className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto max-h-60">
-                <code>{BASH_CLI_SCRIPT}</code>
-              </pre>
-            </div>
-
-            {/* 核心风控原理 */}
-            <div className="p-5 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2 text-sm">
-              <h4 className="font-bold text-amber-400 flex items-center gap-1.5">
-                <Info className="w-4 h-4" />
-                <span>Claude Code 终端关键安全要素</span>
-              </h4>
-              <ul className="list-disc list-inside text-slate-300 space-y-1.5 leading-relaxed text-xs sm:text-sm">
-                <li>
-                  <strong>时区环境变量</strong>：终端执行会读取系统的时区及 <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">TZ</code> 环境变量，建议保持为海外时区（如 America/New_York）。
-                </li>
-                <li>
-                  <strong>本地 Git 邮箱</strong>：若当前项目仓库 Git 配置了国内服务商邮箱（如 qq.com、163.com），可能被作为关联参考，建议全局使用 GitHub 提供的隐私邮箱或通用国际邮箱。
-                </li>
-                <li>
-                  <strong>终端代理通道</strong>：部分代理软件默认不接管命令行流量，请确保已在终端设置 <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">https_proxy</code> 或开启代理客户端的 TUN 增强模式。
-                </li>
-              </ul>
-            </div>
-          </div>
+            }
+          >
+            <SubscriptionTab />
+          </Suspense>
         )}
 
-        {/* Tab 3: 避坑与申诉 SOP */}
+        {/* Tab 3: 避坑与申诉维权 SOP */}
         {activeTab === 'guide' && (
           <div className="space-y-6">
             {/* 顶部分区切换器 */}
@@ -1100,7 +985,7 @@ export default function App() {
 
       {/* 底部版权 */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500 space-y-1">
-        <p>Claude Shield © 2026 • 专注于 Claude 环境风险诊断与技术合规参考</p>
+        <p>Claude 从入门到维权 © 2026 • 专注于 Claude & Claude Code 环境安全自测、开通避坑与退款维权全流程指南</p>
         <p>所有测试均在本地浏览器沙箱内完成，绝不向任何第三方服务器收集或上传您的私有指纹信息。</p>
       </footer>
 

@@ -1,7 +1,7 @@
 {
-  "name": "Claude Shield - Claude 环境安全与防封诊断工具",
-  "short_name": "Claude Shield",
-  "description": "专为开发者打造的 Claude / Claude Code 纯本地网络与指纹安全自测工具",
+  "name": "Claude 从入门到维权 - 环境安全自测与防封维权指南",
+  "short_name": "从入门到维权",
+  "description": "Claude 从入门到维权：专为开发者打造的纯本地网络与指纹安全自测工具",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#020617",

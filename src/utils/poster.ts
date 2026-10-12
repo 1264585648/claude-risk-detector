@@ -42,11 +42,11 @@ export function generateReportPoster(
     // 2. 头部品牌
     ctx.fillStyle = '#d97706'; // Claude 特色赭石黄/琥珀金
     ctx.font = 'bold 24px -apple-system, sans-serif';
-    ctx.fillText('CLAUDE SHIELD • 环境安全诊断报告', 50, 75);
+    ctx.fillText('CLAUDE 从入门到维权 • 环境安全体检报告', 50, 75);
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '14px -apple-system, sans-serif';
-    ctx.fillText('Claude & Claude Code 本地网络与指纹体检报告', 50, 105);
+    ctx.fillText('Claude & Claude Code 本地网络防封自测与维权指引', 50, 105);
 
     // 3. 核心大分值卡片
     ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
@@ -169,7 +169,7 @@ export function generateReportPoster(
 
     ctx.fillStyle = '#d97706';
     ctx.font = 'bold 14px -apple-system, sans-serif';
-    ctx.fillText('Claude Shield 环境安全自测 →', 420, footerY + 50);
+    ctx.fillText('Claude 从入门到维权 →', 420, footerY + 50);
 
     // 7. 异步绘制达里奥 Q 版夸张立绘并完成导出
     const darioKey =
