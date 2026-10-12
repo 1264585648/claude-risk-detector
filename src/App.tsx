@@ -45,9 +45,10 @@ import {
 } from './utils/refundGuide';
 import { generateReportPoster } from './utils/poster';
 import { DarioCompanion } from './components/DarioCompanion';
+import { SubscriptionTab } from './components/SubscriptionTab';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'web' | 'cli' | 'guide' | 'solution'>('web');
+  const [activeTab, setActiveTab] = useState<'web' | 'subscription' | 'cli' | 'guide' | 'solution'>('web');
   const [isScanning, setIsScanning] = useState(false);
   const [items, setItems] = useState<DetectionItem[]>([]);
   const [network, setNetwork] = useState<NetworkProfile>({
@@ -182,6 +183,17 @@ export default function App() {
               }`}
             >
               环境体检
+            </button>
+            <button
+              onClick={() => setActiveTab('subscription')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
+                activeTab === 'subscription'
+                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>订阅与卡台</span>
             </button>
             <button
               onClick={() => setActiveTab('cli')}
@@ -523,11 +535,41 @@ export default function App() {
                   );
                 })}
               </div>
+
+              {/* 引导至订阅与卡台的快捷横幅 */}
+              <div className="p-5 rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/80 to-slate-950 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                      <span>体检就绪？下一步：安全开通 Claude Pro / Code 订阅</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        连接 306+ 款虚拟卡
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                      已连接底层 <code>card-catalog</code> 虚拟卡数据库，涵盖免 KYC 选卡、Stripe 雷达避坑与 0% 免税州地址生成。
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveTab('subscription')}
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                >
+                  <span>前往订阅与卡台全景</span>
+                  <span>→</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Tab 2: Claude Code 专属自检 */}
+        {/* Tab 2: 订阅方式、虚拟卡台与 KYC 避坑全景 */}
+        {activeTab === 'subscription' && <SubscriptionTab />}
+
+        {/* Tab 3: Claude Code 专属自检 */}
         {activeTab === 'cli' && (
           <div className="space-y-6">
             <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
