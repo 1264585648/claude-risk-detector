@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #0f172a;
+    color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+}
+
+/* Custom scrollbar and animations */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* 达里奥 Q 版形象专属夸张动画 */
+@keyframes dario-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.03);
+  }
+}
+
+@keyframes dario-panic {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  15% {
+    transform: translate(-4px, 3px) rotate(-3deg);
+  }
+  30% {
+    transform: translate(4px, -3px) rotate(3deg);
+  }
+  45% {
+    transform: translate(-3px, -2px) rotate(-2deg);
+  }
+  60% {
+    transform: translate(3px, 2px) rotate(2deg);
+  }
+  75% {
+    transform: translate(-2px, 3px) rotate(-1deg);
+  }
+}
+
+@keyframes dario-chill {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+
+@keyframes dario-doubt {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.03) rotate(-2deg);
+  }
+}
+
+@keyframes dario-scan {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.4));
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+    filter: drop-shadow(0 0 22px rgba(6, 182, 212, 0.8));
+  }
+}
+
+@keyframes speech-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-dario-bounce {
+  animation: dario-bounce 2.2s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+}
+
+.animate-dario-panic {
+  animation: dario-panic 0.5s ease-in-out infinite;
+}
+
+.animate-dario-chill {
+  animation: dario-chill 2.8s ease-in-out infinite;
+}
+
+.animate-dario-doubt {
+  animation: dario-doubt 3s ease-in-out infinite;
+}
+
+.animate-dario-scan {
+  animation: dario-scan 1.2s ease-in-out infinite;
+}
+
+.animate-speech-pop {
+  animation: speech-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
