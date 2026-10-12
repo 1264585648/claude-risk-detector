@@ -42,6 +42,7 @@ import {
   REFUND_FAQS
 } from './utils/refundGuide';
 import { generateReportPoster } from './utils/poster';
+import { DarioCompanion } from './components/DarioCompanion';
 import { DiagnosisFixModule } from './components/DiagnosisFixModule';
 
 const SubscriptionTab = lazy(() =>
@@ -396,6 +397,14 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            {/* 达里奥安全诊断顾问 */}
+            <DarioCompanion
+              score={overall?.totalScore ?? 0}
+              riskLevel={overall?.riskLevel ?? 'SAFE'}
+              isScanning={isScanning}
+              verdict={overall?.verdict ?? '环境体检就绪'}
+            />
 
             {/* 诊断结论与一键复制修复版 */}
             <DiagnosisFixModule
