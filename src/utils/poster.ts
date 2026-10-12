@@ -42,11 +42,11 @@ export function generateReportPoster(
     // 2. 头部品牌
     ctx.fillStyle = '#d97706'; // Claude 特色赭石黄/琥珀金
     ctx.font = 'bold 24px -apple-system, sans-serif';
-    ctx.fillText('CLAUDE SHIELD • 封号风险体检中心', 50, 75);
+    ctx.fillText('CLAUDE SHIELD • 环境安全诊断报告', 50, 75);
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '14px -apple-system, sans-serif';
-    ctx.fillText('面向国内开发者的纯本地环境指纹检测单', 50, 105);
+    ctx.fillText('Claude & Claude Code 本地网络与指纹体检报告', 50, 105);
 
     // 3. 核心大分值卡片
     ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
@@ -74,7 +74,7 @@ export function generateReportPoster(
     ctx.font = 'bold 26px -apple-system, sans-serif';
     ctx.fillText(overall.verdict, 90, 310);
 
-    // 盖章效果（高危红码 / 相对安全）
+    // 盖章效果（高风险预警 / 建议优化 / 安全通行）
     ctx.save();
     ctx.translate(550, 240);
     ctx.rotate((-15 * Math.PI) / 180);
@@ -84,7 +84,7 @@ export function generateReportPoster(
     ctx.fillStyle = themeColor;
     ctx.font = 'bold 22px -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(isSafe ? '安全通行' : isWarning ? '中度疑似' : '高危封禁', 0, 8);
+    ctx.fillText(isSafe ? '安全通行' : isWarning ? '建议优化' : '高风险预警', 0, 8);
     ctx.restore();
 
     // 4. 网络与出口信息
@@ -96,7 +96,7 @@ export function generateReportPoster(
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '14px -apple-system, sans-serif';
-    ctx.fillText('出口 IP 画像与网络归属地', 75, 425);
+    ctx.fillText('网络出口节点与属地比对', 75, 425);
 
     ctx.fillStyle = '#f1f5f9';
     ctx.font = 'bold 18px monospace';
@@ -105,7 +105,7 @@ export function generateReportPoster(
     ctx.fillStyle = network.isTzMismatch ? '#ef4444' : '#10b981';
     ctx.font = '14px -apple-system, sans-serif';
     ctx.fillText(
-      network.isTzMismatch ? '⚠️ 发现致命时区不匹配破绽' : '✓ 出口与时区对应正常',
+      network.isTzMismatch ? '⚠️ 本地时区与出口属地不一致' : '✓ 出口与本地时区匹配良好',
       420,
       460
     );
@@ -113,7 +113,7 @@ export function generateReportPoster(
     // 5. 检测明细列表
     ctx.fillStyle = '#94a3b8';
     ctx.font = 'bold 16px -apple-system, sans-serif';
-    ctx.fillText('关键检测信号诊断', 50, 535);
+    ctx.fillText('关键环境指纹检测项', 50, 535);
 
     let startY = 560;
     items.slice(0, 6).forEach((item) => {
@@ -169,7 +169,7 @@ export function generateReportPoster(
 
     ctx.fillStyle = '#d97706';
     ctx.font = 'bold 14px -apple-system, sans-serif';
-    ctx.fillText('扫码或访问 Claude 封号体检中心自测 →', 380, footerY + 50);
+    ctx.fillText('Claude Shield 环境安全自测 →', 420, footerY + 50);
 
     // 7. 异步绘制达里奥 Q 版夸张立绘并完成导出
     const darioKey =

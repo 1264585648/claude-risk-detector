@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { RiskLevel } from '../types';
-import { Sparkles, HelpCircle, Coffee, ShieldCheck, Flame, Cpu } from 'lucide-react';
+import { HelpCircle, Coffee, ShieldCheck, Flame, Cpu, Lightbulb, RefreshCw } from 'lucide-react';
 
 interface DarioCompanionProps {
   score: number;
@@ -18,85 +18,78 @@ interface DarioMoodConfig {
   badgeColor: string;
   glowColor: string;
   animClass: string;
-  headline: string;
-  quotes: string[];
-  actionDesc: string;
+  title: string;
+  tips: string[];
 }
 
 const DARIO_CONFIGS: Record<DarioStateKey, DarioMoodConfig> = {
   scanning: {
     key: 'scanning',
     image: '/dario/dario-scanning.png',
-    badge: '六手黑客 · 狂暴排查',
+    badge: '全面检测中',
     badgeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
     glowColor: 'from-cyan-500/20 to-blue-500/5',
     animClass: 'animate-dario-scan',
-    headline: '六手残影狂敲键盘！正在底层渗透你的网络特征……',
-    actionDesc: '六臂全息极速渗透，激光眼死锁 WebRTC 泄漏！',
-    quotes: [
-      '“别动！我的六只手正在以 1200 WPM 狂敲代码核查你的时区底牌！”',
-      '“机械瞄准镜全开！中文字体、系统编码、WebRTC 破绽一个都跑不掉！”',
-      '“正在向 Anthropic 风控核心实时比对指纹，深呼吸，马上出判决！”'
+    title: '安全顾问正在全面诊断您的环境特征...',
+    tips: [
+      '正在本地沙箱中逐项探测网络出口、系统时区、中文字体与 WebRTC 穿透特征，请稍候。',
+      '所有检测逻辑 100% 在您本机浏览器完成，绝不会向任何第三方云端上传您的隐私指纹。'
     ]
   },
   safe: {
     key: 'safe',
     image: '/dario/dario-safe.png',
-    badge: '星星眼狂喜 · 纯度 100%',
+    badge: '极佳 · 原生海外环境',
     badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
     glowColor: 'from-emerald-500/20 to-amber-500/10',
     animClass: 'animate-dario-bounce',
-    headline: '达里奥喜极而泣！高举 100 分黄金盾牌大奖杯！',
-    actionDesc: '眼冒金星喜极而泣，彩虹漫天，颁发 Anthropic 免死金牌！',
-    quotes: [
-      '“太牛啦！！眼里全是金星星！这纯度比我在旧金山总部的电脑还要原生！”',
-      '“达里奥亲自给你颁发免死金牌！Claude 3.5 Sonnet / Opus 尽管全速输出！”',
-      '“我宣布：你就是 Anthropic 驻国内荣誉首席极客！免封认证已盖章！”'
+    title: '检测完成，您的环境处于最佳安全状态',
+    tips: [
+      '您的出口 IP、系统时区与浏览器指纹高度匹配海外原生环境，未发现明显受限特征。',
+      '可放心使用 Claude 网页端及 Claude Code 进行高强度编码工作，保持当前网络状态即可。',
+      '建议固定使用当前优质节点，避免在短时间内频繁跨国切换线路。'
     ]
   },
   good: {
     key: 'good',
     image: '/dario/dario-good.png',
-    badge: '单手推墨镜 · 牙齿闪光',
+    badge: '良好 · 配置基本合规',
     badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
     glowColor: 'from-sky-500/20 to-indigo-500/5',
     animClass: 'animate-dario-chill',
-    headline: '帅气推下墨镜，叮~ 一声牙齿闪光，咖啡走起！',
-    actionDesc: '单手扶黑超抛媚眼，手比爱心手枪，悠闲啜饮热拿铁！',
-    quotes: [
-      '“推下墨镜~ (✨叮！) 兄弟这环境调得相当可以，喝杯咖啡淡定写代码！”',
-      '“大体骨骼惊奇，封号概率极低！平时别多台设备同时乱跳就行~”',
-      '“稳如老狗！Anthropic 典藏版咖啡分你一半，放手去 Coding 吧！”'
+    title: '网络基本合规，日常使用较为平稳',
+    tips: [
+      '核心网络出口与本地时区已基本对应，可正常进行日常对话与轻量开发。',
+      '若后续准备订阅 Pro 计划，建议搭配可靠的海外支付方式，避免使用被批量标记的虚拟卡号。',
+      '注意不要在多个设备或网络环境中同时频繁并发请求，以维持账号的高信誉度。'
     ]
   },
   warning: {
     key: 'warning',
     image: '/dario/dario-warning.png',
-    badge: '柯南推镜 · 巨眼狐疑',
+    badge: '中度风险 · 建议排查优化',
     badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
     glowColor: 'from-amber-500/20 to-orange-500/5',
     animClass: 'animate-dario-doubt',
-    headline: '放大镜把眼珠放大十倍！镜片反光一闪：真相只有一个！',
-    actionDesc: '巨大凸透镜死死凝视，镜片反光闪瞎，摸下巴审视中文字体！',
-    quotes: [
-      '“（推眼镜白光一闪）等等……这超大放大镜可不是摆设，我嗅到了国内字体的气息！”',
-      '“你的 IP 虽然挂在美西，但系统字体和语言直接把你的定位给出卖了！”',
-      '“普通摸鱼可能还没事，要是高强度跑 Claude Code，风控分分钟给你挂黄牌！”'
+    title: '发现部分环境痕迹，建议进行针对性优化',
+    tips: [
+      '当前节点虽能连通，但检测到浏览器首选语言为中文，建议调整为 English 以减少 Cloudflare 验证码弹窗。',
+      '检测到当前使用的出口可能属于云厂商数据中心 IP，这类 IP 容易被风控系统提高关注权重。',
+      '如需长时间进行自动化代码生成，建议考虑使用第三方 API 直连方案以获得更长效的稳定性。'
     ]
   },
   danger: {
     key: 'danger',
     image: '/dario/dario-danger.png',
-    badge: '《呐喊》炸毛 · 踩警报尖叫',
+    badge: '高风险 · 建议优先处理',
     badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
     glowColor: 'from-rose-500/25 to-red-600/10',
     animClass: 'animate-dario-panic',
-    headline: '抱头触电炸毛！泪流成河！脚踩红灯大喊“ACK! STOP!”',
-    actionDesc: '卷发触电冒火花，眼泪狂飙，头顶猩红 BAN 封号大印章！',
-    quotes: [
-      '“快停手啊啊啊！！ACK! STOP! 卷发都给我吓炸毛了！你的 IP 和系统时区完全对不上！！”',
-      '“风控警报已经在办公室响破天了！再敢点一次发送，立刻喜提永久封禁！！”',
-      '“救命！快看下方红色急救指南！赶紧改系统时区和语言，晚一秒号就没了！！”'
+    title: '检测到明显的环境冲突，存在触发风控拦截的隐患',
+    tips: [
+      '系统本地时区（东八区）与海外出口节点不匹配，这是 Claude 平台最容易识别的跨区代理特征，建议优先修改电脑时区。',
+      '请先不要进行登录或高频操作，建议通过下方的一键修复命令将系统时区与节点同步后再使用。',
+      '若使用 Claude Code 终端工具，请确认已在终端配置代理环境变量或开启代理工具的 TUN 虚拟网卡模式。'
     ]
   }
 };
@@ -107,85 +100,79 @@ export const DarioCompanion: React.FC<DarioCompanionProps> = ({
   isScanning,
   verdict
 }) => {
-  // 支持手动体验各档位夸张表情的预览模式
-  const [previewState, setPreviewState] = useState<DarioStateKey | null>(null);
-  const [quoteIndex, setQuoteIndex] = useState(0);
-  const [pokeCount, setPokeCount] = useState(0);
+  const [tipIndex, setTipIndex] = useState(0);
   const [showPokeBubble, setShowPokeBubble] = useState(false);
 
   // 决定当前生效的状态
-  const currentStateKey: DarioStateKey = previewState
-    ? previewState
-    : isScanning
+  const currentStateKey: DarioStateKey = isScanning
     ? 'scanning'
     : score >= 90 && riskLevel === 'SAFE'
     ? 'safe'
     : score >= 70
     ? 'good'
-    : score >= 40 && riskLevel !== 'CRITICAL'
+    : score >= 45 && riskLevel !== 'CRITICAL'
     ? 'warning'
     : 'danger';
 
   const config = DARIO_CONFIGS[currentStateKey];
 
-  // 状态改变时重置台词索引
+  // 状态改变时重置贴士索引
   useEffect(() => {
-    setQuoteIndex(0);
+    setTipIndex(0);
   }, [currentStateKey]);
 
-  // 点击达里奥触发互动彩蛋
-  const handlePokeDario = () => {
-    setPokeCount((c) => c + 1);
-    setQuoteIndex((prev) => (prev + 1) % config.quotes.length);
+  // 点击互动彩蛋
+  const handlePoke = () => {
+    setTipIndex((prev) => (prev + 1) % config.tips.length);
     setShowPokeBubble(true);
-    setTimeout(() => setShowPokeBubble(false), 2600);
+    setTimeout(() => setShowPokeBubble(false), 2400);
+  };
+
+  const handleNextTip = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setTipIndex((prev) => (prev + 1) % config.tips.length);
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-800/90 bg-gradient-to-br from-slate-900/95 via-slate-950/90 to-slate-900/90 p-5 sm:p-6 backdrop-blur-xl shadow-2xl transition-all">
-      {/* 动态光晕背景 */}
+    <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-900/90 via-slate-950/80 to-slate-900/90 p-5 sm:p-6 backdrop-blur-xl shadow-xl transition-all">
+      {/* 动态柔和光晕背景 */}
       <div
         className={`absolute -top-24 -right-24 w-80 h-80 rounded-full blur-3xl pointer-events-none bg-gradient-to-br ${config.glowColor} transition-all duration-700`}
       />
 
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
-        {/* 左侧：夸张 Q 版达里奥全身立绘与动作展示 */}
-        <div className="flex flex-col items-center sm:flex-row gap-5 text-center sm:text-left">
-          <div
-            onClick={handlePokeDario}
-            className="group relative cursor-pointer select-none"
-            title="戳一戳达里奥，听听他想说什么！"
-          >
-            {/* 角色底座光环 */}
-            <div className="absolute inset-0 rounded-full bg-amber-500/10 blur-xl group-hover:bg-amber-400/20 transition-all" />
+      <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6 relative z-10">
+        {/* 左侧：精巧顾问形象 */}
+        <div
+          onClick={handlePoke}
+          className="group relative cursor-pointer select-none shrink-0"
+          title="点击安全小助手，切换贴士"
+        >
+          {/* 头像光环底座 */}
+          <div className="absolute inset-0 rounded-2xl bg-amber-500/10 blur-lg group-hover:bg-amber-400/20 transition-all" />
 
-            {/* 形象图片主体 */}
-            <div
-              className={`relative w-44 h-44 sm:w-48 sm:h-48 flex items-center justify-center p-2 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-inner group-hover:scale-105 active:scale-95 transition-transform duration-200`}
-            >
-              {showPokeBubble && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-bold text-xs shadow-lg animate-bounce z-20 whitespace-nowrap">
-                  💥 哎呀别戳我！
-                </span>
-              )}
-              <img
-                src={config.image}
-                alt={`Q版达里奥-${config.badge}`}
-                className={`w-full h-full object-contain filter drop-shadow-xl ${config.animClass}`}
-              />
-
-              {/* 互动提示角标 */}
-              <span className="absolute bottom-2 right-2 text-[10px] px-1.5 py-0.5 rounded bg-slate-950/80 text-slate-400 border border-slate-700/60 opacity-0 group-hover:opacity-100 transition-opacity">
-                戳我互动 👆
+          <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center p-2 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-inner group-hover:scale-105 active:scale-95 transition-transform duration-200">
+            {showPokeBubble && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-bold text-xs shadow-lg animate-bounce z-20 whitespace-nowrap">
+                💡 贴士已切换！
               </span>
-            </div>
+            )}
+            <img
+              src={config.image}
+              alt={`安全顾问-${config.badge}`}
+              className={`w-full h-full object-contain filter drop-shadow-md ${config.animClass}`}
+            />
+            <span className="absolute bottom-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded bg-slate-950/80 text-slate-400 border border-slate-700/60 opacity-0 group-hover:opacity-100 transition-opacity">
+              点我互动
+            </span>
           </div>
+        </div>
 
-          {/* 角色状态与气泡台词 */}
-          <div className="flex-1 max-w-lg space-y-3">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+        {/* 右侧：专业贴心的诊断建议卡片 */}
+        <div className="flex-1 w-full space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               <span
-                className={`text-xs px-2.5 py-1 rounded-full font-bold border flex items-center gap-1.5 shadow-sm ${config.badgeColor}`}
+                className={`text-xs px-2.5 py-1 rounded-full font-semibold border flex items-center gap-1.5 ${config.badgeColor}`}
               >
                 {currentStateKey === 'scanning' && <Cpu className="w-3.5 h-3.5 animate-spin" />}
                 {currentStateKey === 'safe' && <ShieldCheck className="w-3.5 h-3.5" />}
@@ -194,128 +181,35 @@ export const DarioCompanion: React.FC<DarioCompanionProps> = ({
                 {currentStateKey === 'danger' && <Flame className="w-3.5 h-3.5 text-rose-400" />}
                 {config.badge}
               </span>
-
-              <span className="text-xs text-slate-400 font-mono">
-                判定：{verdict || '环境体检中'}
+              <span className="text-xs text-slate-400 font-medium">
+                评级：{verdict}
               </span>
-
-              {pokeCount > 0 && (
-                <span className="text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono">
-                  已互动 {pokeCount} 次
-                </span>
-              )}
             </div>
 
-            {/* 夸张台词对话气泡 */}
-            <div
-              key={`${currentStateKey}-${quoteIndex}`}
-              className="relative p-3.5 sm:p-4 rounded-xl bg-slate-800/90 border border-slate-700/70 text-slate-100 shadow-lg animate-speech-pop"
+            <button
+              onClick={handleNextTip}
+              className="text-xs text-slate-400 hover:text-amber-400 flex items-center gap-1 transition px-2 py-1 rounded-md hover:bg-slate-800/60"
             >
-              {/* 小三角气泡尾巴 */}
-              <div className="hidden sm:block absolute -left-2 top-6 w-3 h-3 bg-slate-800 border-l border-b border-slate-700/70 transform rotate-45" />
+              <RefreshCw className="w-3 h-3" />
+              <span>换一条建议 ({tipIndex + 1}/{config.tips.length})</span>
+            </button>
+          </div>
 
-              <div className="flex items-start gap-2">
-                <span className="text-amber-400 text-lg leading-none">💬</span>
-                <div>
-                  <p className="text-xs text-amber-400/90 font-bold mb-1">
-                    达里奥 · 实时心声（点击角色切换台词）：
-                  </p>
-                  <p className="text-sm font-medium text-slate-200 leading-snug">
-                    {config.quotes[quoteIndex]}
-                  </p>
-                </div>
+          {/* 顾问建议对话框 */}
+          <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700/60 text-slate-100 shadow-md">
+            <div className="flex items-start gap-2.5">
+              <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5 text-amber-400">
+                <Lightbulb className="w-3.5 h-3.5" />
               </div>
-
-              <div className="mt-2 pt-2 border-t border-slate-700/40 flex items-center justify-between text-[11px] text-slate-400">
-                <span>动作：{config.actionDesc}</span>
-                <button
-                  onClick={handlePokeDario}
-                  className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition"
-                >
-                  换句骚话 ↻
-                </button>
+              <div className="space-y-1">
+                <h4 className="text-xs font-semibold text-amber-300/90">
+                  安全顾问排查贴士
+                </h4>
+                <p className="text-sm text-slate-200 leading-relaxed">
+                  {config.tips[tipIndex]}
+                </p>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* 右侧：体验各档位夸张反应的快捷试演面板 */}
-        <div className="w-full lg:w-auto flex flex-col gap-2 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-xs text-slate-400 pb-1 border-b border-slate-800">
-            <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              达里奥动作试演台
-            </span>
-            {previewState && (
-              <button
-                onClick={() => setPreviewState(null)}
-                className="text-[11px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition"
-              >
-                切回真实体检 ↺
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-1.5 text-xs">
-            <button
-              onClick={() => setPreviewState('safe')}
-              className={`px-3 py-1.5 rounded-lg font-medium text-left transition flex items-center justify-between gap-2 ${
-                currentStateKey === 'safe'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                  : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800/80'
-              }`}
-            >
-              <span>🌟 满分 100 分</span>
-              <span className="text-[10px] text-emerald-400 font-mono">星星眼狂喜</span>
-            </button>
-
-            <button
-              onClick={() => setPreviewState('good')}
-              className={`px-3 py-1.5 rounded-lg font-medium text-left transition flex items-center justify-between gap-2 ${
-                currentStateKey === 'good'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                  : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800/80'
-              }`}
-            >
-              <span>☕ 80 分稳健</span>
-              <span className="text-[10px] text-sky-400 font-mono">推墨镜闪牙</span>
-            </button>
-
-            <button
-              onClick={() => setPreviewState('warning')}
-              className={`px-3 py-1.5 rounded-lg font-medium text-left transition flex items-center justify-between gap-2 ${
-                currentStateKey === 'warning'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800/80'
-              }`}
-            >
-              <span>🧐 55 分疑似</span>
-              <span className="text-[10px] text-amber-400 font-mono">巨眼放大镜</span>
-            </button>
-
-            <button
-              onClick={() => setPreviewState('danger')}
-              className={`px-3 py-1.5 rounded-lg font-medium text-left transition flex items-center justify-between gap-2 ${
-                currentStateKey === 'danger'
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                  : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800/80'
-              }`}
-            >
-              <span>🚨 20 分高危</span>
-              <span className="text-[10px] text-rose-400 font-mono">抱头触电尖叫</span>
-            </button>
-
-            <button
-              onClick={() => setPreviewState('scanning')}
-              className={`px-3 py-1.5 rounded-lg font-medium text-left transition flex items-center justify-between gap-2 col-span-2 sm:col-span-1 ${
-                currentStateKey === 'scanning'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800/80'
-              }`}
-            >
-              <span>⚡ 实时探测</span>
-              <span className="text-[10px] text-cyan-400 font-mono">六手狂暴敲键</span>
-            </button>
           </div>
         </div>
       </div>

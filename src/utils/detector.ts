@@ -8,7 +8,7 @@ export function detectTimezone(): DetectionItem {
   try {
     tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   } catch (e) {
-    tz = 'Error reading timezone';
+    tz = '无法读取时区';
   }
 
   const offsetMinutes = new Date().getTimezoneOffset();
@@ -26,32 +26,32 @@ export function detectTimezone(): DetectionItem {
   if (isChinaTz) {
     risk = 'CRITICAL';
     score = 0;
-    detail = `命中中国大陆受限时区: ${tz} (${offsetStr})。Claude Code 与网页端对此有极高权重判定！`;
+    detail = `系统时区为中国大陆时区 (${tz})。Claude 客户端与网页端会直接读取此时区。`;
   } else if (isHongKongTaipei) {
     risk = 'HIGH';
     score = 30;
-    detail = `当前时区属于非支持地区(港澳台): ${tz}。Anthropic 官方未开放港澳台直连支持。`;
+    detail = `系统时区为港澳台区域 (${tz})，目前 Anthropic 官方服务尚未对该地区完全开放。`;
   } else if (isUtc8) {
     risk = 'MEDIUM';
     score = 60;
-    detail = `时区名虽非中国大陆，但时区偏移量为 UTC+8 (${tz})，存在时区反向推断疑点。`;
+    detail = `时区偏移量为东八区 (${tz}, ${offsetStr})，容易被平台作为关联辅助判定。`;
   } else {
     risk = 'SAFE';
     score = 100;
-    detail = `时区合规: ${tz} (${offsetStr})，非东八区受限区域。`;
+    detail = `系统时区正常: ${tz} (${offsetStr})，属于支持访问的海外时区。`;
   }
 
   return {
     id: 'timezone',
-    title: '系统时区 (System Timezone)',
+    title: '系统本地时区 (System Timezone)',
     category: 'timezone',
     weight: 25,
     score,
     risk,
     value: `${tz} (${offsetStr})`,
     detail,
-    impactReason: 'Claude Code 逆向报告证实：客户端会读取本地系统时区，并在调用端点时作为元数据隐写进上下文中；网页端也会直接读取该 API 进行属地判定。',
-    fixGuide: '将电脑系统时区更改为美国时区（如 America/New_York 或 America/Los_Angeles），且需同步开启自动时钟同步防止证书过期。',
+    impactReason: 'Claude 网页端以及 Claude Code 命令行客户端在运行时，会直接读取操作系统的本地时区设置作为地理位置标识。若出口 IP 是海外但系统时区为东八区，会立即形成冲突。',
+    fixGuide: '建议在电脑系统设置中将时区更改为与代理节点一致的海外时区（如美东 America/New_York 或美西 America/Los_Angeles），并保持网络时间同步。',
     quickFixCmd: navigator.userAgent.includes('Windows')
       ? 'tzutil /s "Eastern Standard Time"'
       : 'sudo systemsetup -settimezone "America/New_York"',
@@ -74,29 +74,29 @@ export function detectLanguages(): DetectionItem {
 
   if (isPrimaryZh) {
     risk = 'HIGH';
-    score = 15;
-    detail = `首选语言为中文 (${primary})，直接暴露中文环境偏好。`;
+    score = 20;
+    detail = `首选语言为中文 (${primary})，请求时会向服务器声明中文首选偏好。`;
   } else if (hasZhInList) {
     risk = 'LOW';
     score = 75;
-    detail = `首选语言非中文 (${primary})，但备用语言包含 [${languages.filter((l) => /^zh/i.test(l)).join(', ')}]。相对安全。`;
+    detail = `首选语言非中文 (${primary})，备用语言列表中包含中文，配置相对合理。`;
   } else {
     risk = 'SAFE';
     score = 100;
-    detail = `纯外语环境偏好: [${languages.join(', ')}]，无中文痕迹。`;
+    detail = `首选与备用语言均为外语偏好: [${languages.join(', ')}]。`;
   }
 
   return {
     id: 'languages',
-    title: '浏览器语言链 (Languages)',
+    title: '浏览器首选语言 (Languages)',
     category: 'language',
     weight: 15,
     score,
     risk,
     value: languages.slice(0, 3).join(', ') + (languages.length > 3 ? '...' : ''),
     detail,
-    impactReason: '网页端发起请求时，请求头 Accept-Language 和 navigator.languages 会暴露客户端真实的系统/浏览器主语言。',
-    fixGuide: '在 Chrome / Edge 设置 -> 语言 中，将 English (United States) 置顶，并将中文（简体）下移或移除。',
+    impactReason: '浏览器在访问网页时，会通过请求头 Accept-Language 和前端接口上报用户的首选语言序列，首选语言为中文容易增加安全系统的二次校验概率。',
+    fixGuide: '打开浏览器“设置” -> “语言”，将 English (United States) 移动到第一位作为首选语言。',
   };
 }
 
@@ -173,34 +173,34 @@ export function detectFonts(): DetectionItem {
   let detail = '';
 
   if (oemDetected.length > 0) {
-    risk = 'CRITICAL';
-    score = 10;
-    detail = `检测到国产手机厂商深度系统字体: [${oemDetected.join(', ')}]，高危暴露国产 Android 环境！`;
+    risk = 'HIGH';
+    score = 25;
+    detail = `检测到手机系统定制字体: [${oemDetected.join(', ')}]，表明处于特定移动设备系统环境。`;
   } else if (detected.length >= 2) {
     risk = 'MEDIUM';
-    score = 50;
-    detail = `检测到本地已安装中文字体: [${detected.join(', ')}]。海外原生系统极少默认预装这些字体。`;
+    score = 55;
+    detail = `检测到本地系统预装中文字体: [${detected.join(', ')}]。`;
   } else if (detected.length === 1) {
     risk = 'LOW';
-    score = 75;
+    score = 80;
     detail = `检测到 1 种常见中文字体: [${detected[0]}]。`;
   } else {
     risk = 'SAFE';
     score = 100;
-    detail = '未检测到明显的中文字体或国产定制字体指纹。';
+    detail = '未检测到明显的特定中文字体指纹，字体环境纯净。';
   }
 
   return {
     id: 'fonts',
-    title: '系统与厂商字体 (Installed Fonts)',
+    title: '系统与设备字体特征 (Installed Fonts)',
     category: 'font',
     weight: 15,
     score,
     risk,
-    value: [...oemDetected, ...detected].slice(0, 3).join(', ') || '未发现中文字体',
+    value: [...oemDetected, ...detected].slice(0, 3).join(', ') || '未检测到特殊中文字体',
     detail,
-    impactReason: '网页可通过测算 Canvas 文本尺寸比对本地已安装字体，如果含有大量中文或国产厂商特有字体，即使改了英文语言也能被识别为中国用户。',
-    fixGuide: '桌面端开发建议使用指纹浏览器（如开启字体保护）或在纯英文虚拟机/轻量级 Linux 容器中运行 Claude Code。',
+    impactReason: '网页可通过 Canvas 文本测绘推算系统预装的字体列表。若含有较多定制中文字体，可能被作为推断用户真实设备区域的辅助参考。',
+    fixGuide: '常规使用通常无需专门卸载字体；若需深度防关联或管理多账号，建议使用指纹浏览器隔离字体枚举，或在英文环境虚拟机中运行。',
   };
 }
 
@@ -227,29 +227,29 @@ export async function detectWebRTC(): Promise<DetectionItem> {
 
       if (hasDomesticPublicIp) {
         risk = 'CRITICAL';
-        score = 0;
-        detail = `WebRTC 严重泄露公网 IP: ${detectedIps.join(', ')}！即使开启了代理也被直接旁路穿透。`;
+        score = 10;
+        detail = `WebRTC 检测到公网真实 IP: ${detectedIps.join(', ')}。真实网络地址已被旁路穿透。`;
       } else if (detectedIps.length > 0) {
         risk = 'LOW';
-        score = 80;
-        detail = `WebRTC 收集到局域网内网地址 (${detectedIps.join(', ')})，未泄露公网直连 IP。`;
+        score = 85;
+        detail = `WebRTC 仅获取到局域网私有地址 (${detectedIps.join(', ')})，未泄露真实外网 IP。`;
       } else {
         risk = 'SAFE';
         score = 100;
-        detail = 'WebRTC 已被阻断或未泄露任何候选 IP，表现完美。';
+        detail = 'WebRTC 通道未泄露任何真实公网 IP，数据通道安全。';
       }
 
       resolve({
         id: 'webrtc',
-        title: 'WebRTC IP 泄露防护',
+        title: 'WebRTC 真实 IP 防泄露',
         category: 'webrtc',
         weight: 15,
         score,
         risk,
         value: detectedIps.length > 0 ? detectedIps.join(', ') : '无泄露 (Safe)',
         detail,
-        impactReason: 'WebRTC 的 STUN 穿透机制会绕过常规的浏览器代理扩展（如 SwitchyOmega），直接向真实网卡探测真实公网 IP。',
-        fixGuide: '推荐在 Chrome 中安装 "WebRTC Control" 扩展，或开启 Clash / Surge 的 TUN 增强模式全局托管流量。',
+        impactReason: '部分浏览器代理插件仅代理 HTTP 网页请求，而 WebRTC 协议通过 STUN 穿透可能直接绕过代理，向外界暴露本地网络的真实宽带 IP。',
+        fixGuide: '建议在代理客户端中开启 TUN/虚拟网卡增强模式进行全局接管，或在浏览器中安装 WebRTC 禁用插件避免旁路穿透。',
       });
     };
 
@@ -293,16 +293,16 @@ export function detectBrowser(): DetectionItem {
   const ua = navigator.userAgent;
 
   const domesticBrowsers = [
-    { key: 'MicroMessenger', name: '微信内置浏览器 (WeChat)' },
-    { key: 'QQBrowser', name: 'QQ浏览器' },
-    { key: 'Baidu', name: '百度浏览器 / 百度App' },
-    { key: 'UCBrowser', name: 'UC浏览器' },
+    { key: 'MicroMessenger', name: '微信内置浏览器' },
+    { key: 'QQBrowser', name: 'QQ 浏览器' },
+    { key: 'Baidu', name: '百度浏览器 / 百度 App' },
+    { key: 'UCBrowser', name: 'UC 浏览器' },
     { key: 'Quark', name: '夸克浏览器' },
-    { key: '360SE', name: '360安全浏览器' },
-    { key: '360EE', name: '360极速浏览器' },
+    { key: '360SE', name: '360 安全浏览器' },
+    { key: '360EE', name: '360 极速浏览器' },
     { key: 'MetaSr', name: '搜狗浏览器' },
     { key: 'LieBao', name: '猎豹浏览器' },
-    { key: '2345Explorer', name: '2345王牌浏览器' },
+    { key: '2345Explorer', name: '2345 浏览器' },
   ];
 
   const matched = domesticBrowsers.filter((b) => ua.includes(b.key));
@@ -313,12 +313,12 @@ export function detectBrowser(): DetectionItem {
 
   if (matched.length > 0) {
     risk = 'CRITICAL';
-    score = 0;
-    detail = `检测到国产外壳浏览器/内置容器: ${matched.map((m) => m.name).join(', ')}。此类浏览器内置大量本土统计脚本及修改过的 UA。`;
+    score = 10;
+    detail = `检测到国产定制外壳浏览器: ${matched.map((m) => m.name).join(', ')}。此类浏览器含有较多本土环境特征及修改过的 User-Agent。`;
   } else {
     risk = 'SAFE';
     score = 100;
-    detail = '未检测出国产外壳浏览器指纹（当前为原生 Chrome / Edge / Firefox / Safari 等）。';
+    detail = '未检测到定制外壳浏览器特征（当前为原生 Chrome / Edge / Firefox / Safari 等主流环境）。';
   }
 
   return {
@@ -328,15 +328,15 @@ export function detectBrowser(): DetectionItem {
     weight: 10,
     score,
     risk,
-    value: matched.length > 0 ? matched[0].name : '原生国际版浏览器',
+    value: matched.length > 0 ? matched[0].name : '国际通用原版浏览器',
     detail,
-    impactReason: '国产浏览器在 UA 中普遍内置私有标记，且可能包含特定的全局变量注入（如 window.external），Claude 风控可 100% 确定用户设备环境在中国。',
-    fixGuide: '绝对不要使用国产双核浏览器或微信内打开 Claude。请使用官方下载的 Google Chrome 原版或 Firefox。',
+    impactReason: '部分国产定制浏览器会在 User-Agent 中注入特有标识，或携带国内服务注入脚本，极易被平台识别为非目标区域访问。',
+    fixGuide: '建议使用官方版 Google Chrome、Microsoft Edge 或 Mozilla Firefox 进行日常访问，避免在微信或双核浏览器内登录。',
   };
 }
 
 // ==========================================
-// 6. Intl 本地化区域与 Emoji 渲染特征
+// 6. Intl 本地化区域与数值习惯
 // ==========================================
 export function detectIntlAndEmoji(): DetectionItem {
   let numberLocale = '';
@@ -353,43 +353,43 @@ export function detectIntlAndEmoji(): DetectionItem {
 
   let risk: RiskLevel = 'SAFE';
   let score = 100;
-  let detail = `本地化 Locale 设置: 格式化区域为 ${numberLocale || '未知'}`;
+  let detail = `系统本地化 Locale 设置: ${numberLocale || '未知'}`;
 
   if (isZhLocale) {
     risk = 'HIGH';
-    score = 20;
-    detail = `系统底层 Intl.locale 依然为中文 (${numberLocale})。即使你改了浏览器显示语言，底层数字/货币习惯仍暴露了中文系统环境。`;
+    score = 25;
+    detail = `系统底层的 Intl.locale 格式化区域为中文 (${numberLocale})。即使修改了网页语言，系统底层区域习惯仍显现中文环境。`;
   } else {
     risk = 'SAFE';
     score = 100;
-    detail = `Intl.locale 区域非中文 (${numberLocale})，与外语环境保持高度一致。`;
+    detail = `Intl 格式化区域非中文 (${numberLocale})，与海外环境保持一致。`;
   }
 
   return {
     id: 'intl',
-    title: 'Intl 区域本地化设置 (Locale Format)',
+    title: '系统区域格式 (Regional Locale)',
     category: 'intl',
     weight: 10,
     score,
     risk,
     value: `${numberLocale || 'en-US'}`,
     detail,
-    impactReason: '现代前端常用 Intl API 格式化日期与货币，它能绕过简单的语言设置，直接反映操作系统设置面板里的区域选项。',
-    fixGuide: '在 Windows/macOS 系统设置中，将“区域格式 (Regional Format)”从“中国 (中文)”调整为“United States (English)”。',
+    impactReason: '前端 Intl API 常用于格式化日期和货币，它能绕过普通网页语言设置，直接反映操作系统设置面板里的区域选项。',
+    fixGuide: '在 Windows 或 macOS 系统“区域设置”中，可将“区域格式 (Regional Format)”从“中国 (中文)”调整为“United States (English)”。',
   };
 }
 
 // ==========================================
-// 7. 出口 IP 画像与时区交叉校验 (致命破绽)
+// 7. 出口 IP 画像与时区交叉校验 (带容灾备用源)
 // ==========================================
 export async function detectIpAndCrossCheck(browserTimezone: string): Promise<{
   ipItem: DetectionItem;
   profile: NetworkProfile;
 }> {
   let profile: NetworkProfile = {
-    ip: 'Unknown',
-    country: 'Unknown',
-    countryCode: 'XX',
+    ip: '未能获取',
+    country: '探测中...',
+    countryCode: '',
     city: '',
     timezone: '',
     isp: '',
@@ -398,36 +398,97 @@ export async function detectIpAndCrossCheck(browserTimezone: string): Promise<{
     status: 'loading',
   };
 
-  try {
-    // 使用快速公共免费 ip whois 接口获取当前出口信息
-    const res = await fetch('https://ipwhois.app/json/', { signal: AbortSignal.timeout(3500) });
-    if (res.ok) {
-      const data = await res.json();
-      profile = {
-        ip: data.ip || 'Unknown',
-        country: data.country || 'Unknown',
-        countryCode: data.country_code || '',
-        city: data.city || '',
-        timezone: data.timezone || '',
-        isp: data.org || data.isp || '',
-        isDatacenter: /Cloud|Host|Server|Datacenter|Data Center|Oracle|DigitalOcean|Amazon|Google|Alibaba|Tencent/i.test(
-          data.org || data.isp || ''
-        ),
-        isTzMismatch: false,
-        status: 'success',
+  // 多源容灾探测：按优先级尝试快速接口
+  const fetchWithTimeout = async (url: string, timeoutMs: number = 3000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (res.ok) return await res.json();
+    } catch {
+      clearTimeout(timer);
+    }
+    return null;
+  };
+
+  // 源 1: ipwho.is (稳定、支持跨域、信息全)
+  let rawData = await fetchWithTimeout('https://ipwho.is/');
+
+  // 源 2: ipapi.co (高权威)
+  if (!rawData || !rawData.ip) {
+    rawData = await fetchWithTimeout('https://ipapi.co/json/');
+    if (rawData) {
+      rawData = {
+        ip: rawData.ip,
+        country: rawData.country_name,
+        country_code: rawData.country_code,
+        city: rawData.city,
+        timezone: rawData.timezone,
+        connection: { isp: rawData.org },
       };
     }
-  } catch (e) {
-    // 网络请求失败或超时
-    profile.status = 'failed';
   }
 
-  // 交叉校验：IP 时区 vs 浏览器时区
-  const isChinaBrowserTz = /Asia\/(Shanghai|Chongqing|Urumqi|Harbin)/i.test(browserTimezone);
-  const isOverseasIp = Boolean(profile.countryCode && !['CN', 'HK', 'MO'].includes(profile.countryCode.toUpperCase()));
+  // 源 3: ipwhois.app
+  if (!rawData || !rawData.ip) {
+    const backupData = await fetchWithTimeout('https://ipwhois.app/json/');
+    if (backupData && backupData.ip) {
+      rawData = {
+        ip: backupData.ip,
+        country: backupData.country,
+        country_code: backupData.country_code,
+        city: backupData.city,
+        timezone: backupData.timezone,
+        connection: { isp: backupData.isp || backupData.org },
+      };
+    }
+  }
 
-  // 破绽分析：如果出口是海外（如美国），但浏览器时区是上海
-  profile.isTzMismatch = Boolean(isChinaBrowserTz && isOverseasIp);
+  if (rawData && rawData.ip) {
+    const ispName =
+      (rawData.connection && rawData.connection.isp) ||
+      rawData.isp ||
+      rawData.org ||
+      '';
+    const isDc = /Cloud|Host|Server|Datacenter|Data Center|Oracle|DigitalOcean|Amazon|Google|Alibaba|Tencent|Microsoft|Linode|Vultr|OVH/i.test(
+      ispName
+    );
+
+    profile = {
+      ip: rawData.ip,
+      country: rawData.country || '海外节点',
+      countryCode: (rawData.country_code || '').toUpperCase(),
+      city: rawData.city || '',
+      timezone: rawData.timezone ? (rawData.timezone.id || rawData.timezone) : '',
+      isp: ispName || '国际宽带线路',
+      isDatacenter: isDc,
+      isTzMismatch: false,
+      status: 'success',
+    };
+  } else {
+    // 全源失败降级：严谨处理，绝不可在失败时假定为海外并报错时区脱节！
+    profile = {
+      ip: '未获取到有效 IP',
+      country: '网络探测受限',
+      countryCode: '',
+      city: '',
+      timezone: '',
+      isp: '未知网络',
+      isDatacenter: false,
+      isTzMismatch: false,
+      status: 'failed',
+    };
+  }
+
+  // 交叉校验：只有成功拿到合法国家码时才进行比对
+  const isChinaBrowserTz = /Asia\/(Shanghai|Chongqing|Urumqi|Harbin)|PRC/i.test(browserTimezone);
+  const hasValidCountry = Boolean(profile.countryCode && profile.countryCode !== 'XX');
+  const isDomesticIp = ['CN', 'HK', 'MO'].includes(profile.countryCode);
+  const isOverseasIp = hasValidCountry && !isDomesticIp;
+
+  // 核心风控点：出口已在海外支持区，但浏览器本地依然为中国时区
+  profile.isTzMismatch = Boolean(hasValidCountry && isOverseasIp && isChinaBrowserTz);
 
   let risk: RiskLevel = 'SAFE';
   let score = 100;
@@ -437,50 +498,55 @@ export async function detectIpAndCrossCheck(browserTimezone: string): Promise<{
     return {
       ipItem: {
         id: 'ip-cross',
-        title: '出口 IP 与时区交叉校验 (Cross Check)',
+        title: '出口 IP 属地与连通性',
         category: 'ip',
         weight: 20,
-        score: 70,
+        score: 65,
         risk: 'LOW',
-        value: '公共 IP API 连接受限',
-        detail: '无法探测出口 IP 详细 ASN（可能受拦截），建议使用全局代理模式。',
-        impactReason: 'Claude 在边缘网关上会把出口 IP 所在地理位置与客户端上报时区进行对比。',
-        fixGuide: '确保节点出口 IP 所在时区与电脑系统时区严格保持一致。',
+        value: '公共接口探测受限',
+        detail: '未能通过公开接口获取公网 IP 信息。可能是代理未开启全局分流，或当前网络拦截了探测请求。',
+        impactReason: 'Claude 服务位于境外，访问时需确保网络能够正常连通海外支持区域。',
+        fixGuide: '请检查代理客户端（如 Clash、Sing-box、Surge）是否已正常启动，并建议开启 TUN 虚拟网卡模式或全局代理后重新检测。',
       },
       profile,
     };
   }
 
-  if (['CN', 'HK'].includes(profile.countryCode.toUpperCase())) {
+  if (isDomesticIp) {
     risk = 'CRITICAL';
     score = 0;
-    detail = `致命：当前出口 IP 位于中国大陆/香港 (${profile.country})，Claude 官方直接阻断访问！`;
+    detail = `出口 IP 位于中国大陆/港澳地区 (${profile.country})。Claude 暂不支持该地区直连，访问将直接提示 403 限制。`;
   } else if (profile.isTzMismatch) {
-    risk = 'CRITICAL';
-    score = 10;
-    detail = `致命破绽：出口 IP 位于海外 (${profile.country} - ${profile.city})，但浏览器系统时区显示为 (${browserTimezone})！这是风控系统最直接判定“机房代理/异地伪装”的核心依据。`;
-  } else if (profile.isDatacenter) {
     risk = 'HIGH';
-    score = 45;
-    detail = `出口 IP 为机房托管段 (Datacenter ASN: ${profile.isp})，非家庭原生住宅宽带，易被 Claude 列入批量灰名单。`;
+    score = 20;
+    detail = `出口节点位于海外 (${profile.country}${profile.city ? ' · ' + profile.city : ''})，但浏览器上报的时区依然为中国时区 (${browserTimezone})。两者存在明显差异。`;
+  } else if (profile.isDatacenter) {
+    risk = 'MEDIUM';
+    score = 55;
+    detail = `出口 IP 属于机房托管线路 (${profile.isp})。此类线路容易被多人共用，安全防护权重略低于家庭原生宽带。`;
   } else {
     risk = 'SAFE';
     score = 100;
-    detail = `出口 IP 位于允许地区 (${profile.country})，且与浏览器时区基本匹配，未触发明显风控碰撞。`;
+    detail = `出口 IP 位于支持区域 (${profile.country})，且与系统时区配置对应，未发现明显异常。`;
   }
 
   return {
     ipItem: {
       id: 'ip-cross',
-      title: '出口 IP 与时区交叉校验 (Cross Check)',
+      title: '出口 IP 属地与时区比对',
       category: 'ip',
       weight: 20,
       score,
       risk,
       value: `${profile.country} (${profile.ip})`,
       detail,
-      impactReason: '【致命破绽第 1 名】当你的出口 IP 是美国洛杉矶，但你的浏览器或终端时区是 Asia/Shanghai，任何风控算法都能一眼识破为代理违规访问。',
-      fixGuide: `若出口 IP 位于 ${profile.timezone || '海外'}，请务必把本地操作系统时区也设置为 ${profile.timezone || '对应时区'}。`,
+      impactReason: '当访问请求从海外节点发出，但操作系统或浏览器上报的时间仍为中国东八区时，平台安全算法很容易识别出“跨区代理访问”特征。',
+      fixGuide: profile.isTzMismatch
+        ? `建议将电脑本地时区调整为与节点属地相近的时区（推荐切换为美国东部或西部时区），保持二者逻辑一致。`
+        : '保持当前匹配的节点与时区设置即可。',
+      quickFixCmd: navigator.userAgent.includes('Windows')
+        ? 'tzutil /s "Eastern Standard Time"'
+        : 'sudo systemsetup -settimezone "America/New_York"',
     },
     profile,
   };
@@ -508,22 +574,22 @@ export function calculateOverall(items: DetectionItem[]): OverallResult {
   let verdict = '';
   let description = '';
 
-  if (finalScore < 40 || criticals.length >= 2) {
+  if (finalScore < 45 || criticals.length >= 2) {
     riskLevel = 'CRITICAL';
-    verdict = '高危被封体质 (Extreme Risk)';
-    description = '你的当前环境存在多处致命破绽（如时区未改、IP 与时区冲突或国产字体泄露），使用 Claude / Claude Code 极大概率在短期内被封号或降智！请立刻按下方方案修复。';
+    verdict = '高风险（存在封号隐患）';
+    description = '检测到当前网络环境与本地系统存在明显冲突（如海外节点与中国时区共存），该特征极易触发平台安全风控。建议优先参考下方方案完成优化。';
   } else if (finalScore < 70) {
     riskLevel = 'MEDIUM';
-    verdict = '中度疑点环境 (Suspicious)';
-    description = '你的基本代理有效，但残留了中文字体、语言偏好或本地化参数等痕迹。普通网页访问可能侥幸存活，但重度使用 Claude Code 很容易被触发风控。';
+    verdict = '中风险（建议排查优化）';
+    description = '基础网络连接正常，但本地环境（如语言偏好、系统字体或机房 IP）仍保留部分特征，轻度使用通常无碍，深度使用建议进一步配置。';
   } else if (finalScore < 90) {
     riskLevel = 'LOW';
-    verdict = '相对安全 (Good Standing)';
-    description = '绝大部分核心参数已伪装合规，仅有极个别微弱特征。保持良好的使用频率和干净的支付方式即可长期稳定。';
+    verdict = '良好（配置基本合规）';
+    description = '核心网络与系统参数已良好匹配，未发现明显的区域冲突，可安心进行日常工作与开发。';
   } else {
     riskLevel = 'SAFE';
-    verdict = '绝密原生纯净度 (Native Level)';
-    description = '恭喜！你的环境特征与海外原生开发者无异，无任何明显中国区域破绽，可放心使用 Claude Code 及各类尊享订阅。';
+    verdict = '极佳（原生海外环境）';
+    description = '环境特征高度符合海外原生用户标准，各项指标均处于安全区间，适于深度使用 Claude 及 Claude Code。';
   }
 
   return {

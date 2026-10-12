@@ -113,18 +113,23 @@ export default function App() {
   const getRiskBadge = (risk: string) => {
     switch (risk) {
       case 'SAFE':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">安全原生</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">安全正常</span>;
       case 'LOW':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20">轻度可疑</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20">良好偏好</span>;
       case 'MEDIUM':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">中度风险</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">建议优化</span>;
       case 'HIGH':
       case 'CRITICAL':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20 animate-pulse">高危致命</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">优先排查</span>;
       default:
         return null;
     }
   };
+
+  const isWindows = navigator.userAgent.includes('Windows');
+  const quickFixTzCmd = isWindows
+    ? 'tzutil /s "Eastern Standard Time"'
+    : 'sudo systemsetup -settimezone "America/New_York"';
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
@@ -132,7 +137,7 @@ export default function App() {
       <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-900/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-900/20">
               <ShieldCheck className="w-6 h-6 text-slate-950" />
             </div>
             <div>
@@ -140,12 +145,12 @@ export default function App() {
                 <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent">
                   Claude Shield
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">
-                  封号风险体检
+                <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">
+                  环境安全诊断
                 </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">
-                专为国内用户打造的 Claude / Claude Code 纯本地环境防封诊断
+                专为开发者打造的 Claude / Claude Code 本地网络与防封指纹自测工具
               </p>
             </div>
           </div>
@@ -159,7 +164,7 @@ export default function App() {
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              浏览器体检
+              环境体检
             </button>
             <button
               onClick={() => setActiveTab('cli')}
@@ -170,7 +175,7 @@ export default function App() {
               }`}
             >
               <Terminal className="w-4 h-4" />
-              <span>Claude Code</span>
+              <span>Claude Code 终端</span>
             </button>
             <button
               onClick={() => setActiveTab('guide')}
@@ -190,7 +195,7 @@ export default function App() {
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              免梯方案
+              稳定替代方案
             </button>
           </nav>
         </div>
@@ -199,15 +204,15 @@ export default function App() {
       {/* 主体内容 */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         {activeTab === 'web' && (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* 核心仪表盘卡片 */}
             <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/80 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
               <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
                 {/* 评分圆环与大字 */}
                 <div className="flex items-center gap-6 sm:gap-8">
-                  <div className="relative w-36 h-36 flex items-center justify-center">
+                  <div className="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
                       <circle
                         cx="60"
@@ -240,27 +245,27 @@ export default function App() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-4xl font-extrabold tracking-tight">
+                      <span className="text-3xl sm:text-4xl font-extrabold tracking-tight">
                         {isScanning ? '...' : overall ? overall.totalScore : 0}
                       </span>
-                      <span className="text-xs text-slate-400 font-medium">/ 100 安全分</span>
+                      <span className="text-[11px] text-slate-400 font-medium">/ 100 安全分</span>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-2xl font-bold tracking-tight">
+                      <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
                         {isScanning
-                          ? '正在逐项探测指纹...'
+                          ? '正在分析指纹与网络特征...'
                           : overall
                           ? overall.verdict
                           : '环境体检就绪'}
                       </h2>
                     </div>
-                    <p className="text-sm text-slate-400 max-w-md leading-relaxed">
+                    <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
                       {overall
                         ? overall.description
-                        : '基于公开逆向报告与指纹机制，100% 本地运算检测系统时区、中文字体与 WebRTC 等。'}
+                        : '100% 在本地沙箱中完成运算，安全检测系统时区、网络出口、设备字体与 WebRTC 穿透等关键指标。'}
                     </p>
                   </div>
                 </div>
@@ -270,10 +275,10 @@ export default function App() {
                   <button
                     onClick={runFullScan}
                     disabled={isScanning}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
                   >
                     <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-                    <span>{isScanning ? '探测中...' : '重新检测'}</span>
+                    <span>{isScanning ? '正在探测...' : '重新检测'}</span>
                   </button>
 
                   <button
@@ -282,27 +287,48 @@ export default function App() {
                     className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 transition"
                   >
                     <Download className="w-4 h-4" />
-                    <span>{isGeneratingPoster ? '正在绘制海报...' : '生成体检报告长图'}</span>
+                    <span>{isGeneratingPoster ? '正在绘制长图...' : '生成体检报告长图'}</span>
                   </button>
                 </div>
               </div>
 
-              {/* 致命破绽高亮提醒 */}
+              {/* 关键异常一键解决提醒条 */}
               {network.isTzMismatch && (
-                <div className="mt-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-                  <div className="text-sm text-rose-200">
-                    <strong className="font-semibold text-rose-400 block mb-0.5">
-                      检测到致命破绽：出口 IP 属地与系统时区严重脱节！
-                    </strong>
-                    你的出口 IP 位于海外（{network.country}），但当前浏览器上报的时区依然是东八区中国时区。
-                    这是 Claude 风控系统识别“代理违规登录”最显眼的特征，请尽快修改电脑系统时区！
+                <div className="mt-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                    <div className="text-xs sm:text-sm text-rose-200">
+                      <strong className="font-semibold text-rose-400 block mb-0.5">
+                        优先排查：出口 IP 属地与系统本地时区不一致
+                      </strong>
+                      当前出口位于海外（{network.country}），但电脑系统依然处于东八区中国时区（{Intl.DateTimeFormat().resolvedOptions().timeZone}）。这是触发平台代理访问限制的高频特征。
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                    <button
+                      onClick={() => copyToClipboard(quickFixTzCmd, 'banner-fix')}
+                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/40 text-xs font-medium transition"
+                    >
+                      {copiedKey === 'banner-fix' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                      <span>
+                        {copiedKey === 'banner-fix'
+                          ? '已复制美东时区命令'
+                          : isWindows
+                          ? '复制 Windows 改美东时区命令'
+                          : '复制 macOS 改美东时区命令'}
+                      </span>
+                    </button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* 达里奥 Q 版监考官 · 随分数实时变幻夸张动作与台词 */}
+            {/* 安全诊断顾问卡片 */}
             <DarioCompanion
               score={overall?.totalScore ?? 0}
               riskLevel={overall?.riskLevel ?? 'SAFE'}
@@ -310,7 +336,7 @@ export default function App() {
               verdict={overall?.verdict ?? '环境体检就绪'}
             />
 
-            {/* 网络与出口信息概览 */}
+            {/* 网络与出口环境画像 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40">
                 <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
@@ -318,14 +344,25 @@ export default function App() {
                   <span>公网出口 IP</span>
                 </div>
                 <div className="font-mono text-base font-semibold text-slate-200 truncate">
-                  {network.ip}
+                  {network.status === 'failed' ? (
+                    <span className="text-amber-400 text-sm font-normal">未能获取 (可开启全局模式重试)</span>
+                  ) : (
+                    network.ip
+                  )}
                 </div>
               </div>
 
               <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40">
-                <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
-                  <Wifi className="w-4 h-4 text-emerald-400" />
-                  <span>IP 归属地与服务商</span>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Wifi className="w-4 h-4 text-emerald-400" />
+                    <span>出口属地与服务商</span>
+                  </div>
+                  {network.isTzMismatch && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px]">
+                      时区差异 ⚠️
+                    </span>
+                  )}
                 </div>
                 <div className="text-base font-semibold text-slate-200 truncate">
                   {network.country} {network.city ? `• ${network.city}` : ''}
@@ -333,9 +370,16 @@ export default function App() {
               </div>
 
               <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40">
-                <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
-                  <Clock className="w-4 h-4 text-amber-400" />
-                  <span>本地系统时区</span>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Clock className="w-4 h-4 text-amber-400" />
+                    <span>本地系统时区</span>
+                  </div>
+                  {network.isTzMismatch && (
+                    <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px]">
+                      建议同步
+                    </span>
+                  )}
                 </div>
                 <div className="text-base font-semibold text-slate-200 truncate">
                   {Intl.DateTimeFormat().resolvedOptions().timeZone}
@@ -348,8 +392,10 @@ export default function App() {
                   <span>IP 线路属性</span>
                 </div>
                 <div className="text-base font-semibold text-slate-200 truncate">
-                  {network.isDatacenter ? (
-                    <span className="text-rose-400">IDC 机房段 (高风控)</span>
+                  {network.status === 'failed' ? (
+                    <span className="text-slate-400 text-sm">未能探测</span>
+                  ) : network.isDatacenter ? (
+                    <span className="text-amber-400">数据中心机房段 (多共用)</span>
                   ) : (
                     <span className="text-emerald-400">家庭/企业原生宽带</span>
                   )}
@@ -361,12 +407,12 @@ export default function App() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-                  <span>检测信号深度明细</span>
+                  <span>环境指纹逐项检测清单</span>
                   <span className="text-xs text-slate-400 font-normal">
-                    (点击卡片展开风控机理与一键修复方案)
+                    (点击卡片查看风控判定原理与逐步排查指引)
                   </span>
                 </h3>
-                <span className="text-xs text-slate-500 font-mono">共 {items.length} 项关键指标</span>
+                <span className="text-xs text-slate-500 font-mono">共 {items.length} 项关键检测</span>
               </div>
 
               <div className="space-y-3">
@@ -386,14 +432,14 @@ export default function App() {
                           {item.risk === 'LOW' && <ShieldCheck className="w-5 h-5 text-sky-400" />}
                           {item.risk === 'MEDIUM' && <AlertTriangle className="w-5 h-5 text-amber-400" />}
                           {(item.risk === 'HIGH' || item.risk === 'CRITICAL') && (
-                            <ShieldAlert className="w-5 h-5 text-rose-500 animate-pulse" />
+                            <ShieldAlert className="w-5 h-5 text-rose-500" />
                           )}
                           <div>
                             <div className="font-semibold text-slate-200 text-sm sm:text-base">
                               {item.title}
                             </div>
                             <div className="text-xs text-slate-400 font-mono mt-0.5">
-                              当前值: {item.value}
+                              当前状态: {item.value}
                             </div>
                           </div>
                         </div>
@@ -417,21 +463,21 @@ export default function App() {
                         <div className="p-4 pt-2 border-t border-slate-800/60 bg-slate-950/40 text-sm space-y-3">
                           <div>
                             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-                              诊断结论
+                              诊断分析
                             </span>
-                            <p className="text-slate-300">{item.detail}</p>
+                            <p className="text-slate-300 leading-relaxed">{item.detail}</p>
                           </div>
 
                           <div>
                             <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider block mb-1">
-                              为什么 Claude 会查这个？
+                              为什么平台会关注此项？
                             </span>
                             <p className="text-slate-400 leading-relaxed">{item.impactReason}</p>
                           </div>
 
                           <div>
                             <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider block mb-1">
-                              如何修复与防封建议
+                              优化与排查建议
                             </span>
                             <p className="text-slate-300 leading-relaxed mb-2">{item.fixGuide}</p>
                             {item.quickFixCmd && (
@@ -470,11 +516,11 @@ export default function App() {
             <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
               <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2 mb-2">
                 <Terminal className="w-5 h-5 text-amber-400" />
-                <span>Claude Code 终端环境一键自测</span>
+                <span>Claude Code 终端环境自测</span>
               </h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Claude Code 命令行在本地执行时，会直接读取您操作系统的终端环境变量、本地 Git 邮箱、时区等参数。
-                复制下方自测命令在终端运行，即可 3 秒内识别终端级破绽。
+                Claude Code 命令行工具在本地执行时，会直接读取操作系统的终端环境变量、本地 Git 邮箱与时区等参数。
+                复制下方自测命令在终端运行，即可快速检查本地命令行环境是否合规。
               </p>
             </div>
 
@@ -484,7 +530,7 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-sky-500"></span>
                   <span className="font-semibold text-slate-200 text-sm">
-                    Windows 用户 (PowerShell 一键脚本)
+                    Windows 用户 (PowerShell 自测脚本)
                   </span>
                 </div>
                 <button
@@ -510,7 +556,7 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
                   <span className="font-semibold text-slate-200 text-sm">
-                    macOS / Linux 用户 (Bash 一键脚本)
+                    macOS / Linux 用户 (Bash 自测脚本)
                   </span>
                 </div>
                 <button
@@ -530,21 +576,21 @@ export default function App() {
               </pre>
             </div>
 
-            {/* 核心风控原理揭秘 */}
+            {/* 核心风控原理 */}
             <div className="p-5 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2 text-sm">
               <h4 className="font-bold text-amber-400 flex items-center gap-1.5">
                 <Info className="w-4 h-4" />
-                <span>Claude Code 逆向曝光核心细节</span>
+                <span>Claude Code 终端关键安全要素</span>
               </h4>
-              <ul className="list-disc list-inside text-slate-300 space-y-1 leading-relaxed text-xs sm:text-sm">
+              <ul className="list-disc list-inside text-slate-300 space-y-1.5 leading-relaxed text-xs sm:text-sm">
                 <li>
-                  <strong>时区隐写</strong>：Claude Code 会读取系统的时区（如 Asia/Shanghai），并作为系统元数据隐写进每次发给 API 的 Prompt 中。
+                  <strong>时区环境变量</strong>：终端执行会读取系统的时区及 <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">TZ</code> 环境变量，建议保持为海外时区（如 America/New_York）。
                 </li>
                 <li>
-                  <strong>Git 仓库元数据</strong>：若当前项目 Git 配置了 QQ/163/Foxmail 等国产邮箱，或提交日志包含大量敏感中文标签，会被作为关联依据。
+                  <strong>本地 Git 邮箱</strong>：若当前项目仓库 Git 配置了国内服务商邮箱（如 qq.com、163.com），可能被作为关联参考，建议全局使用 GitHub 提供的隐私邮箱或通用国际邮箱。
                 </li>
                 <li>
-                  <strong>中转 Hostname 嗅探</strong>：若中转代理的域名包含明显特征（如国内备案域名、特定免费二级域名），会直接触发异常打标。
+                  <strong>终端代理通道</strong>：部分代理软件默认不接管命令行流量，请确保已在终端设置 <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">https_proxy</code> 或开启代理客户端的 TUN 增强模式。
                 </li>
               </ul>
             </div>
@@ -557,47 +603,44 @@ export default function App() {
             <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
               <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2 mb-2">
                 <FileText className="w-5 h-5 text-amber-400" />
-                <span>Claude 封号类型速查与解封申诉</span>
+                <span>Claude 常见异常类型与解封申诉</span>
               </h3>
-              <p className="text-sm text-slate-400">
-                很多用户以为遇到 403 就是账号废了，其实封号分很多种，对症下药才能挽回账号。
+              <p className="text-sm text-slate-400 leading-relaxed">
+                在使用过程中遇到的异常提示有多种情况，区分“节点受限”与“真正封号”能帮您快速恢复访问。
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
                 <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                  类型 1：地区阻断 (403)
+                  类型 1：地区访问限制 (403)
                 </span>
                 <h4 className="font-bold text-slate-200">App unavailable in your region</h4>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  <strong>表现</strong>：登录页或对话框弹出不支持提示。
-                  <br />
-                  <strong>本质</strong>：仅为当前节点 IP 被 Cloudflare 识别为不支持国家或机房黑名单。账号本身完好！换一个冷门原生节点即可恢复。
+                  <strong>现象</strong>：网页弹出地区不支持提示。<br />
+                  <strong>本质</strong>：仅为当前出口节点 IP 被判定为未开放地区或机房黑名单。<strong>账号本身完好无损</strong>，切换到原生合规节点即可立即恢复。
                 </p>
               </div>
 
               <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
                 <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  类型 2：订阅强制退款
+                  类型 2：订阅支付被撤销
                 </span>
                 <h4 className="font-bold text-slate-200">Subscription Cancelled / Refunded</h4>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  <strong>表现</strong>：Pro 状态失效，收到 Stripe 退款邮件。
-                  <br />
-                  <strong>本质</strong>：支付所用的虚拟信用卡（BIN 卡头）被批量标记。账号本身免费可用，重新绑定合规的海外实体卡即可续费。
+                  <strong>现象</strong>：Pro 状态失效，收到 Stripe 退款邮件。<br />
+                  <strong>本质</strong>：绑定的虚拟信用卡卡头被批量风控拒付。账号本身仍可免费使用，重新绑定合规的海外真实卡或借记卡即可续费。
                 </p>
               </div>
 
               <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
                 <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                  类型 3：彻底封禁
+                  类型 3：账号暂停使用
                 </span>
                 <h4 className="font-bold text-slate-200">Account Disabled / Suspended</h4>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  <strong>表现</strong>：无法登录，提示账户已被禁用。
-                  <br />
-                  <strong>本质</strong>：多次违规判定或触发严重风控。唯有通过官方申诉渠道提交英文申诉信，方有概率解封。
+                  <strong>现象</strong>：登录时提示账号已被禁用。<br />
+                  <strong>本质</strong>：触发了严重跨区风控或批量关联限制。可通过官方申诉通道提交诚恳规范的英文申诉信申请人工复核。
                 </p>
               </div>
             </div>
@@ -607,10 +650,10 @@ export default function App() {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-slate-200 text-sm">
-                    官方高成功率英文申诉邮件模版 (Appeal Email)
+                    官方申诉邮件参考模板 (Appeal Email)
                   </h4>
                   <p className="text-xs text-slate-400">
-                    适用于通过 claude.ai 申诉入口或向 support@anthropic.com 发送
+                    可向 support@anthropic.com 发送，或在官网申诉表单中提交
                   </p>
                 </div>
                 <button
@@ -618,67 +661,85 @@ export default function App() {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition"
                 >
                   {copiedKey === 'appeal' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedKey === 'appeal' ? '已复制模版' : '一键复制申诉信'}</span>
+                  <span>{copiedKey === 'appeal' ? '已复制模板' : '一键复制申诉信'}</span>
                 </button>
               </div>
               <pre className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap">
-                {APPEAL_TEMPLATE}
+                <code>{APPEAL_TEMPLATE}</code>
               </pre>
             </div>
           </div>
         )}
 
-        {/* Tab 4: 国内免梯方案与商业化承接 */}
+        {/* Tab 4: 长效稳定方案 */}
         {activeTab === 'solution' && (
           <div className="space-y-6">
             <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
               <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2 mb-2">
                 <Zap className="w-5 h-5 text-amber-400" />
-                <span>国内稳定使用 Claude 的长效方案</span>
+                <span>长期稳定使用 Claude 的推荐途径</span>
               </h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                如果您实在厌倦了随时改时区、找纯净住宅 IP、担心 Pro 账号被封，以下是国内开发者目前最主流的合规长效平替途径。
+                如果您希望彻底摆脱频繁调整时区、寻找原生住宅 IP 以及担心账号变动的困扰，以下是目前主流且稳定的使用方案对比。
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-3 flex flex-col justify-between">
                 <div>
                   <span className="text-xs px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-                    推荐方案 1：企业级中转 API (Claude Code / Cursor 直连)
+                    方案 1：企业级中转 API 直连
                   </span>
                   <h4 className="text-base font-bold text-slate-200 mt-2">
-                    第三方免翻 API 转发平台
+                    第三方 API 聚合分发
                   </h4>
                   <p className="text-xs text-slate-400 leading-relaxed mt-1">
-                    走官方企业合作渠道聚合下发的 API，无需挂梯子即可直连，直接支持配置在 Claude Code 的
+                    走官方企业渠道聚合下发的 API，无需复杂代理即可直连，直接支持在 Claude Code 或 Cursor 中配置
                     <code className="text-amber-300 bg-slate-800 px-1 py-0.5 rounded ml-1">
                       ANTHROPIC_BASE_URL
                     </code>
-                    ，按量扣费，彻底消除封号恐惧。
+                    ，按实际 Token 计费，无账号封禁隐患。
                   </p>
                 </div>
                 <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-                  <span>特点：低延迟 • 零风控 • 极速配置</span>
-                  <span className="text-amber-400 font-medium">商业合作位预留</span>
+                  <span>特点：低延迟 • 免梯直连</span>
+                  <span className="text-emerald-400 font-medium">推荐：开发首选</span>
                 </div>
               </div>
 
               <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-3 flex flex-col justify-between">
                 <div>
                   <span className="text-xs px-2.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">
-                    推荐方案 2：纯净独享住宅代理 + 指纹浏览器
+                    方案 2：纯净独享住宅 IP + 指纹浏览器
                   </span>
                   <h4 className="text-base font-bold text-slate-200 mt-2">
-                    多账号专业防关联套件
+                    环境隔离防关联套件
                   </h4>
                   <p className="text-xs text-slate-400 leading-relaxed mt-1">
-                    采用海外真实原生住宅 IP，配合专业防关联指纹浏览器（自动隔离 Cookie、屏蔽字体泄露、锁定系统时区与语言），保证单账号高权重长期存活。
+                    采用真实海外住宅 IP，配合专业防关联指纹浏览器（自动隔离 Cookie、屏蔽字体枚举、同步海外时区与语言），保障单账号高信誉度长期使用。
                   </p>
                 </div>
                 <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-                  <span>适合：Claude Pro 深度订阅者 • 团队运营</span>
-                  <span className="text-amber-400 font-medium">Affiliate 赞助位</span>
+                  <span>特点：原生度高 • 适合网页端</span>
+                  <span className="text-sky-400 font-medium">推荐：Pro 深度用户</span>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-3 flex flex-col justify-between">
+                <div>
+                  <span className="text-xs px-2.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">
+                    方案 3：云端远程 Linux 开发环境
+                  </span>
+                  <h4 className="text-base font-bold text-slate-200 mt-2">
+                    海外 VPS / GitHub Codespaces
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                    在海外云服务器或 GitHub Codespaces 云端容器中直接运行 Claude Code，物理 IP 与系统环境纯天然属于海外，无需本地配置任何代理与指纹防护。
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+                  <span>特点：全原生 • 零配置门槛</span>
+                  <span className="text-purple-400 font-medium">推荐：远程协作</span>
                 </div>
               </div>
             </div>
