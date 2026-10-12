@@ -1,0 +1,21 @@
+{
+  "name": "Claude Shield - Claude 环境安全与防封诊断工具",
+  "short_name": "Claude Shield",
+  "description": "专为开发者打造的 Claude / Claude Code 纯本地网络与指纹安全自测工具",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/dario/dario-safe.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

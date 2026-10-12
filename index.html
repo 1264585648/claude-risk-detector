@@ -2,14 +2,135 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d97706'><path d='M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm-2 16l-4-4 1.41-1.41L10 15.17l6.59-6.59L18 10l-8 8z'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Claude Shield ｜ Claude & Claude Code 环境安全与防封诊断工具</title>
-    <meta name="description" content="专为开发者打造的 Claude / Claude Code 纯本地网络与指纹安全自测工具。一键排查系统时区一致性、语言配置、系统字体、WebRTC 穿透与网络出口特征。" />
-    <meta name="keywords" content="Claude,Claude Code,环境体检,指纹检测,Anthropic,WebRTC,系统时区,防封指南" />
+
+    <!-- 基础 SEO Meta 标签 -->
+    <meta
+      name="description"
+      content="专为开发者打造的 Claude / Claude Code 纯本地网络与指纹安全自测工具。100% 本地运算，一键排查出口 IP 冲突、系统时区、WebRTC 真实 IP 泄露与中文字体环境，提供即时修复指南与防封方案。"
+    />
+    <meta
+      name="keywords"
+      content="Claude,Claude Code,Claude防封,Claude封号,Claude封号检测,Anthropic,WebRTC泄露,系统时区冲突,指纹检测,防封指南,Claude国内使用,Claude Code时区,Claude风控"
+    />
+    <meta name="author" content="Claude Shield Team" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://claude-risk-detector.pages.dev/" />
+    <meta name="theme-color" content="#020617" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d97706'><path d='M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm-2 16l-4-4 1.41-1.41L10 15.17l6.59-6.59L18 10l-8 8z'/></svg>" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Open Graph / 社交媒体分享协议 (微信、Twitter、Telegram、Discord、Slack 等) -->
+    <meta property="og:site_name" content="Claude Shield" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://claude-risk-detector.pages.dev/" />
+    <meta property="og:title" content="Claude Shield ｜ Claude & Claude Code 环境安全与防封诊断工具" />
+    <meta
+      property="og:description"
+      content="专为开发者打造的 Claude / Claude Code 纯本地网络与指纹安全自测工具。100% 本地运算，一键排查出口 IP 冲突、系统时区与指纹泄漏。"
+    />
+    <meta property="og:image" content="https://claude-risk-detector.pages.dev/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Claude Shield 环境安全诊断报告封面" />
+    <meta property="og:locale" content="zh_CN" />
+
+    <!-- Twitter Card 标签 -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://claude-risk-detector.pages.dev/" />
+    <meta name="twitter:title" content="Claude Shield ｜ Claude & Claude Code 环境安全与防封诊断工具" />
+    <meta
+      name="twitter:description"
+      content="专为开发者打造的 Claude / Claude Code 纯本地网络与指纹安全自测工具。100% 本地运算，一键排查出口 IP 冲突、系统时区与指纹泄漏。"
+    />
+    <meta name="twitter:image" content="https://claude-risk-detector.pages.dev/og-image.png" />
+
+    <!-- 结构化数据 Schema.org (JSON-LD)：提升 Google/Bing 富媒体搜索结果呈现 -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "name": "Claude Shield",
+            "url": "https://claude-risk-detector.pages.dev/",
+            "applicationCategory": "DeveloperApplication, SecurityApplication",
+            "operatingSystem": "Windows, macOS, Linux, iOS, Android",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "description": "专为开发者打造的 Claude / Claude Code 纯本地网络与指纹安全自测工具。一键排查系统时区、语言设置、WebRTC 泄露与出口 IP 匹配度。",
+            "featureList": [
+              "出口 IP 与系统时区一致性交叉比对",
+              "WebRTC 真实 IP 穿透与泄露探测",
+              "浏览器首选语言与语言链暴露分析",
+              "操作系统预装中文字体特征测绘",
+              "Claude Code 终端环境变量一键自测脚本",
+              "官方人工复核高成功率申诉邮件模板",
+              "100% 纯本地运行沙箱，绝不上传私有指纹"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "为什么使用 Claude 或 Claude Code 会频繁遭遇封号或限制？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "主要原因在于网络环境特征冲突。例如出口 IP 位于海外支持地区，但操作系统时区仍上报为中国东八区（Asia/Shanghai）；或者 WebRTC 绕过浏览器代理插件泄露国内真实公网 IP；以及浏览器首选语言为中文或预装大量国产定制字体等。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Claude Shield 体检会收集或上传我的个人网络指纹吗？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "绝对不会。Claude Shield 采用 100% 纯本地前端沙箱架构，所有指纹计算、字体测绘与交叉比对均在用户的本地浏览器内部完成，绝不向任何第三方云端服务器收集或上传您的私有数据。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "检测出系统时区与网络出口不一致时应该如何解决？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "建议将电脑操作系统的本地时区调整为与当前代理节点所在国家一致的时区（如美东 America/New_York 或美西 America/Los_Angeles），并开启系统网络自动校时。Windows 用户可使用 tzutil /s 'Eastern Standard Time' 命令一键同步。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Claude Code 终端命令行如何进行防封自检？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "可以在终端中运行 Claude Shield 提供的专属自测脚本，检查 TZ 与 LANG 环境变量是否设为海外时区、避免 Git 提交邮箱使用国内服务商后缀，并确保命令行流量开启了代理软件的 TUN 虚拟网卡模式。"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body class="bg-slate-950 text-slate-100">
-    <div id="root"></div>
+    <div id="root">
+      <!-- 爬虫抓取语义静态回退内容 (React 挂载后会自动无缝接管) -->
+      <noscript>
+        <div style="padding: 24px; max-width: 800px; margin: 0 auto; font-family: sans-serif; line-height: 1.6;">
+          <h1>Claude Shield ｜ Claude & Claude Code 环境安全与防封诊断工具</h1>
+          <p>专为开发者打造的 Claude / Claude Code 纯本地网络与指纹安全自测工具。请在浏览器中启用 JavaScript 以获得完整的交互式检测体验。</p>
+          <h2>核心检测功能</h2>
+          <ul>
+            <li>系统时区与出口节点比对：识别东八区与海外 IP 冲突</li>
+            <li>WebRTC 真实 IP 防泄露检测：识别 STUN 旁路穿透风险</li>
+            <li>浏览器语言与系统字体环境特征探测</li>
+            <li>Claude Code 终端环境变量与 Git 邮箱自检脚本</li>
+          </ul>
+        </div>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
