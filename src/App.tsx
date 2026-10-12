@@ -16,7 +16,13 @@ import {
   ChevronUp,
   FileText,
   Zap,
-  Info
+  Info,
+  DollarSign,
+  CreditCard,
+  ExternalLink,
+  Scale,
+  HelpCircle,
+  Star
 } from 'lucide-react';
 import {
   detectTimezone,
@@ -30,6 +36,13 @@ import {
 } from './utils/detector';
 import type { DetectionItem, NetworkProfile, OverallResult } from './types';
 import { POWERSHELL_CLI_SCRIPT, BASH_CLI_SCRIPT, APPEAL_TEMPLATE } from './utils/cliGuide';
+import {
+  OFFICIAL_REFUND_TEMPLATE,
+  BANK_DISPUTE_TEMPLATE,
+  STORE_CHAT_TEMPLATE,
+  REFUND_CHANNELS,
+  REFUND_FAQS
+} from './utils/refundGuide';
 import { generateReportPoster } from './utils/poster';
 import { DarioCompanion } from './components/DarioCompanion';
 
@@ -52,9 +65,13 @@ export default function App() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  // 海报弹窗
   const [posterUrl, setPosterUrl] = useState<string | null>(null);
   const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
+
+  // 避坑与申诉子分栏
+  const [guideSubTab, setGuideSubTab] = useState<'appeal' | 'refund'>('appeal');
+  const [refundTemplateTab, setRefundTemplateTab] = useState<'official' | 'bank' | 'store'>('official');
+  const [expandedFaqIndex, setExpandedFaqIndex] = useState<number | null>(null);
 
   // 执行全套体检
   const runFullScan = async () => {
@@ -600,74 +617,366 @@ export default function App() {
         {/* Tab 3: 避坑与申诉 SOP */}
         {activeTab === 'guide' && (
           <div className="space-y-6">
-            <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
-              <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2 mb-2">
-                <FileText className="w-5 h-5 text-amber-400" />
-                <span>Claude 常见异常类型与解封申诉</span>
-              </h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                在使用过程中遇到的异常提示有多种情况，区分“节点受限”与“真正封号”能帮您快速恢复访问。
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
-                <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                  类型 1：地区访问限制 (403)
-                </span>
-                <h4 className="font-bold text-slate-200">App unavailable in your region</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  <strong>现象</strong>：网页弹出地区不支持提示。<br />
-                  <strong>本质</strong>：仅为当前出口节点 IP 被判定为未开放地区或机房黑名单。<strong>账号本身完好无损</strong>，切换到原生合规节点即可立即恢复。
+            {/* 顶部分区切换器 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md">
+              <div>
+                <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                  {guideSubTab === 'appeal' ? (
+                    <>
+                      <FileText className="w-5 h-5 text-amber-400" />
+                      <span>Claude 异常类型与解封申诉指南</span>
+                    </>
+                  ) : (
+                    <>
+                      <DollarSign className="w-5 h-5 text-emerald-400" />
+                      <span>Claude 订阅退款与维权申请全指南</span>
+                    </>
+                  )}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-400 mt-1 leading-relaxed">
+                  {guideSubTab === 'appeal'
+                    ? '区分“节点受限”与“真正封号”，提供官方人工复核高过率中英文申诉邮件模版。'
+                    : '汇总技术社区（Linux Do / V2EX / Reddit）实战经验：拆解 Apple、Google、Stripe 官网直刷与银行争议拒付 (Chargeback) 避坑维权策略。'}
                 </p>
               </div>
 
-              <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
-                <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  类型 2：订阅支付被撤销
-                </span>
-                <h4 className="font-bold text-slate-200">Subscription Cancelled / Refunded</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  <strong>现象</strong>：Pro 状态失效，收到 Stripe 退款邮件。<br />
-                  <strong>本质</strong>：绑定的虚拟信用卡卡头被批量风控拒付。账号本身仍可免费使用，重新绑定合规的海外真实卡或借记卡即可续费。
-                </p>
-              </div>
-
-              <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
-                <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                  类型 3：账号暂停使用
-                </span>
-                <h4 className="font-bold text-slate-200">Account Disabled / Suspended</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  <strong>现象</strong>：登录时提示账号已被禁用。<br />
-                  <strong>本质</strong>：触发了严重跨区风控或批量关联限制。可通过官方申诉通道提交诚恳规范的英文申诉信申请人工复核。
-                </p>
-              </div>
-            </div>
-
-            {/* 英文申诉信模版 */}
-            <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-slate-200 text-sm">
-                    官方申诉邮件参考模板 (Appeal Email)
-                  </h4>
-                  <p className="text-xs text-slate-400">
-                    可向 support@anthropic.com 发送，或在官网申诉表单中提交
-                  </p>
-                </div>
+              {/* 子 Tab 切换 Pills */}
+              <div className="flex items-center gap-1.5 p-1 bg-slate-950/80 rounded-xl border border-slate-800 shrink-0 self-start sm:self-auto">
                 <button
-                  onClick={() => copyToClipboard(APPEAL_TEMPLATE, 'appeal')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition"
+                  onClick={() => setGuideSubTab('appeal')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+                    guideSubTab === 'appeal'
+                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
                 >
-                  {copiedKey === 'appeal' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedKey === 'appeal' ? '已复制模板' : '一键复制申诉信'}</span>
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>解封申诉 (Appeal)</span>
+                </button>
+                <button
+                  onClick={() => setGuideSubTab('refund')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+                    guideSubTab === 'refund'
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <DollarSign className="w-3.5 h-3.5" />
+                  <span>退款维权 (Refund)</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-300 font-medium">
+                    社区实战
+                  </span>
                 </button>
               </div>
-              <pre className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap">
-                <code>{APPEAL_TEMPLATE}</code>
-              </pre>
             </div>
+
+            {/* 子视图 1：账号解封申诉 */}
+            {guideSubTab === 'appeal' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
+                    <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                      类型 1：地区访问限制 (403)
+                    </span>
+                    <h4 className="font-bold text-slate-200">App unavailable in your region</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      <strong>现象</strong>：网页弹出地区不支持提示。<br />
+                      <strong>本质</strong>：仅为当前出口节点 IP 被判定为未开放地区或机房黑名单。<strong>账号本身完好无损</strong>，切换到原生合规节点即可立即恢复。
+                    </p>
+                  </div>
+
+                  <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
+                    <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      类型 2：订阅支付被撤销
+                    </span>
+                    <h4 className="font-bold text-slate-200">Subscription Cancelled / Refunded</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      <strong>现象</strong>：Pro 状态失效，收到 Stripe 退款邮件。<br />
+                      <strong>本质</strong>：绑定的虚拟信用卡卡头被批量风控拒付。账号本身仍可免费使用，重新绑定合规的海外真实卡或借记卡即可续费。
+                    </p>
+                  </div>
+
+                  <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-2">
+                    <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                      类型 3：账号暂停使用
+                    </span>
+                    <h4 className="font-bold text-slate-200">Account Disabled / Suspended</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      <strong>现象</strong>：登录时提示账号已被禁用。<br />
+                      <strong>本质</strong>：触发了严重跨区风控或批量关联限制。可通过官方申诉通道提交诚恳规范的英文申诉信申请人工复核。
+                    </p>
+                  </div>
+                </div>
+
+                {/* 英文申诉信模版 */}
+                <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-slate-200 text-sm">
+                        官方解封申诉邮件参考模板 (Appeal Email)
+                      </h4>
+                      <p className="text-xs text-slate-400">
+                        可向 support@anthropic.com 发送，或在官网被封申诉表单中提交
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(APPEAL_TEMPLATE, 'appeal')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition"
+                    >
+                      {copiedKey === 'appeal' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedKey === 'appeal' ? '已复制模板' : '一键复制申诉信'}</span>
+                    </button>
+                  </div>
+                  <pre className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap">
+                    <code>{APPEAL_TEMPLATE}</code>
+                  </pre>
+                </div>
+
+                {/* 引导至退款维权的快捷横幅 */}
+                <div className="p-4 rounded-xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/80 to-slate-950 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                      <DollarSign className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-slate-200">
+                        刚付费订阅就被封号，官方申诉未获回复或被拒绝？
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        不要自认倒霉！社区已验证苹果 App Store、Google Play 与信用卡 Chargeback 争议拒付追回路径。
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setGuideSubTab('refund')}
+                    className="px-4 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition shrink-0 flex items-center gap-1"
+                  >
+                    <span>切换至退款维权指南</span>
+                    <span>→</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 子视图 2：退款与维权申请 (Refund) */}
+            {guideSubTab === 'refund' && (
+              <div className="space-y-6">
+                {/* 核心思路总览提示条 */}
+                <div className="p-5 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                    <Scale className="w-4 h-4" />
+                    <span>社区核心共识：退款成败 90% 取决于你当初选择的支付渠道</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Anthropic 官方对封号用户的退款态度非常冷淡，直接找官方客服往往陷入漫长已读不回或模板拒信。因此，<strong>维权的核心逻辑是利用支付通道的上一级规则（Apple / Google / 国际卡组织）进行降维维权</strong>。
+                  </p>
+                </div>
+
+                {/* 四大支付渠道退款维权对比 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {REFUND_CHANNELS.map((ch) => (
+                    <div
+                      key={ch.id}
+                      className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 flex flex-col justify-between space-y-4 hover:border-slate-700 transition"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="w-4 h-4 text-slate-400" />
+                            <span className="font-bold text-slate-100 text-base">{ch.name}</span>
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold border ${ch.badgeColor}`}>
+                              {ch.badge}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-amber-400 text-xs">
+                            <div className="flex">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3.5 h-3.5 ${
+                                    i < ch.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-700'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-slate-400 text-[11px] ml-1">{ch.rateText}</span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          {ch.description}
+                        </p>
+
+                        <div className="space-y-1.5 pt-1">
+                          <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block">
+                            实操维权步骤：
+                          </span>
+                          <ol className="list-decimal list-inside text-xs text-slate-300 space-y-1 leading-relaxed">
+                            {ch.steps.map((st, sIdx) => (
+                              <li key={sIdx}>{st}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 pt-2 border-t border-slate-800/80">
+                        {ch.warning && (
+                          <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300 leading-relaxed flex items-start gap-1.5">
+                            <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                            <span>{ch.warning}</span>
+                          </div>
+                        )}
+
+                        {ch.portalUrl && (
+                          <a
+                            href={ch.portalUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-medium pt-1"
+                          >
+                            <span>{ch.portalText}</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 实用退款维权小作文模版库 */}
+                <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h4 className="font-bold text-slate-100 text-base flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-emerald-400" />
+                        <span>退款维权小作文与证据链模板库</span>
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        按维权进度选用对应模板，支持一键复制后根据自身真实情况修改填空
+                      </p>
+                    </div>
+
+                    {/* 模板选择 Tab */}
+                    <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-lg border border-slate-800 self-start sm:self-auto">
+                      <button
+                        onClick={() => setRefundTemplateTab('official')}
+                        className={`px-2.5 py-1 rounded text-xs font-medium transition ${
+                          refundTemplateTab === 'official'
+                            ? 'bg-slate-800 text-emerald-400 border border-slate-700'
+                            : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        1. 官方退款申请信
+                      </button>
+                      <button
+                        onClick={() => setRefundTemplateTab('bank')}
+                        className={`px-2.5 py-1 rounded text-xs font-medium transition ${
+                          refundTemplateTab === 'bank'
+                            ? 'bg-slate-800 text-emerald-400 border border-slate-700'
+                            : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        2. 银行争议拒付 (双语)
+                      </button>
+                      <button
+                        onClick={() => setRefundTemplateTab('store')}
+                        className={`px-2.5 py-1 rounded text-xs font-medium transition ${
+                          refundTemplateTab === 'store'
+                            ? 'bg-slate-800 text-emerald-400 border border-slate-700'
+                            : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        3. 苹果/谷歌客服会话
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 模板内容与复制按钮 */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-slate-400">
+                      <span>
+                        {refundTemplateTab === 'official' && '发送至：billing@anthropic.com 与 support@anthropic.com（同时固定后续向银行举证的沟通凭据）'}
+                        {refundTemplateTab === 'bank' && '适用：国内银行信用卡国际部或境外银行 App 的 Dispute 陈述栏（中英双语）'}
+                        {refundTemplateTab === 'store' && '适用：苹果 Report a Problem 理由栏或 Google Play 帮助中心 Live Chat 聊天窗口'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const text =
+                            refundTemplateTab === 'official'
+                              ? OFFICIAL_REFUND_TEMPLATE
+                              : refundTemplateTab === 'bank'
+                              ? BANK_DISPUTE_TEMPLATE
+                              : STORE_CHAT_TEMPLATE;
+                          copyToClipboard(text, `refund-${refundTemplateTab}`);
+                        }}
+                        className="flex items-center gap-1 px-3 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shrink-0"
+                      >
+                        {copiedKey === `refund-${refundTemplateTab}` ? (
+                          <Check className="w-3.5 h-3.5" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                        <span>{copiedKey === `refund-${refundTemplateTab}` ? '已复制' : '复制当前模板'}</span>
+                      </button>
+                    </div>
+
+                    <pre className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap max-h-72">
+                      <code>
+                        {refundTemplateTab === 'official' && OFFICIAL_REFUND_TEMPLATE}
+                        {refundTemplateTab === 'bank' && BANK_DISPUTE_TEMPLATE}
+                        {refundTemplateTab === 'store' && STORE_CHAT_TEMPLATE}
+                      </code>
+                    </pre>
+                  </div>
+                </div>
+
+                {/* 社区避坑高频问答 (FAQ) */}
+                <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/40 space-y-4">
+                  <h4 className="font-bold text-slate-100 text-base flex items-center gap-2">
+                    <HelpCircle className="w-4 h-4 text-amber-400" />
+                    <span>社区血泪教训与退款避坑高频问答 (FAQ)</span>
+                  </h4>
+
+                  <div className="space-y-3">
+                    {REFUND_FAQS.map((faq, fIdx) => {
+                      const isExp = expandedFaqIndex === fIdx;
+                      return (
+                        <div
+                          key={fIdx}
+                          className="rounded-lg border border-slate-800 bg-slate-950/60 overflow-hidden"
+                        >
+                          <div
+                            onClick={() => setExpandedFaqIndex(isExp ? null : fIdx)}
+                            className="p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-900/50 transition"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              {faq.tag && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                                  {faq.tag}
+                                </span>
+                              )}
+                              <span className="text-xs sm:text-sm font-semibold text-slate-200">
+                                {faq.question}
+                              </span>
+                            </div>
+                            {isExp ? (
+                              <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                            )}
+                          </div>
+                          {isExp && (
+                            <div className="p-3.5 pt-0 text-xs text-slate-400 border-t border-slate-800/40 bg-slate-900/20 leading-relaxed">
+                              {faq.answer}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
