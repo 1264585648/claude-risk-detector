@@ -92,12 +92,13 @@ export default function App() {
 
     // 3. 异步探测出口 IP 并与时区做交叉比对
     const currentTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const { ipItem, profile } = await detectIpAndCrossCheck(currentTz);
+    const { ipCrossItem, ipLineItem, profile } = await detectIpAndCrossCheck(currentTz);
     setNetwork(profile);
 
     const allItems: DetectionItem[] = [
       tzItem,
-      ipItem,
+      ipCrossItem,
+      ipLineItem,
       langItem,
       fontItem,
       webrtcItem,
@@ -273,8 +274,28 @@ export default function App() {
                   {/* 诊断结论文本 */}
                   <div className="space-y-1.5 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] px-2 py-0.5 rounded font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                        {isScanning ? '检测中' : overall?.riskLevel || 'READY'}
+                      <span className={`text-[11px] px-2 py-0.5 rounded font-mono font-medium border ${
+                        !overall || isScanning
+                          ? 'bg-slate-800 text-slate-300 border-slate-700'
+                          : overall.riskLevel === 'SAFE'
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                          : overall.riskLevel === 'LOW'
+                          ? 'bg-sky-500/10 text-sky-400 border-sky-500/30'
+                          : overall.riskLevel === 'MEDIUM'
+                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                          : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                      }`}>
+                        {isScanning
+                          ? '检测中'
+                          : overall?.riskLevel === 'SAFE'
+                          ? '极佳'
+                          : overall?.riskLevel === 'LOW'
+                          ? '低风险'
+                          : overall?.riskLevel === 'MEDIUM'
+                          ? '中风险'
+                          : overall
+                          ? '高风险'
+                          : 'READY'}
                       </span>
                       <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-100 truncate">
                         {isScanning

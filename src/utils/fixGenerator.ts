@@ -1,64 +1,16 @@
 import type { DetectionItem, NetworkProfile, OverallResult } from '../types';
+import {
+  resolveRecommendedTimezone,
+  type TimezoneMapping,
+} from './timezoneHelper';
 
-interface TimezoneMapping {
-  tzName: string;
-  winTzId: string;
-  label: string;
-}
+export { type TimezoneMapping };
 
 /**
- * 根据探测到的国家代码或名称，智能匹配推荐的目标时区
+ * 根据探测到的网络属地与节点时区，智能匹配全球通用的推荐时区 (支持全量 CLDR 映射)
  */
 export function getRecommendedTimezone(network: NetworkProfile): TimezoneMapping {
-  const code = (network.countryCode || '').toUpperCase();
-  const country = (network.country || '').toLowerCase();
-
-  if (code === 'US' || country.includes('united states') || country.includes('美国')) {
-    return {
-      tzName: 'America/New_York',
-      winTzId: 'Eastern Standard Time',
-      label: '美国东部时区 (America/New_York)',
-    };
-  }
-
-  if (code === 'JP' || country.includes('japan') || country.includes('日本')) {
-    return {
-      tzName: 'Asia/Tokyo',
-      winTzId: 'Tokyo Standard Time',
-      label: '日本东京时区 (Asia/Tokyo)',
-    };
-  }
-
-  if (code === 'SG' || country.includes('singapore') || country.includes('新加坡')) {
-    return {
-      tzName: 'Asia/Singapore',
-      winTzId: 'Singapore Standard Time',
-      label: '新加坡时区 (Asia/Singapore)',
-    };
-  }
-
-  if (code === 'GB' || country.includes('united kingdom') || country.includes('英国')) {
-    return {
-      tzName: 'Europe/London',
-      winTzId: 'GMT Standard Time',
-      label: '英国伦敦时区 (Europe/London)',
-    };
-  }
-
-  if (code === 'DE' || country.includes('germany') || country.includes('德国')) {
-    return {
-      tzName: 'Europe/Berlin',
-      winTzId: 'W. Europe Standard Time',
-      label: '德国柏林时区 (Europe/Berlin)',
-    };
-  }
-
-  // 默认推荐美东（Anthropic 总部主要支持区域）
-  return {
-    tzName: 'America/New_York',
-    winTzId: 'Eastern Standard Time',
-    label: '美国东部时区 (America/New_York)',
-  };
+  return resolveRecommendedTimezone(network.timezone, network.countryCode, network.country);
 }
 
 /**
@@ -234,7 +186,8 @@ export function generateBashFix(
 export function generateOneLiner(network: NetworkProfile, os: 'windows' | 'mac'): string {
   const tz = getRecommendedTimezone(network);
   if (os === 'windows') {
-    return `$env:TZ="${tz.tzName}"; $env:LANG="en_US.UTF-8"; [Console]::OutputEncoding=[System.Text.Encoding]::UTF8; tzutil /s "${tz.winTzId}"; Clear-DnsClientCache`;
+    const tzCmd = network.isTzMismatch ? `tzutil /s "${tz.winTzId}"; ` : '';
+    return `$env:TZ="${tz.tzName}"; $env:LANG="en_US.UTF-8"; [Console]::OutputEncoding=[System.Text.Encoding]::UTF8; ${tzCmd}Clear-DnsClientCache`;
   }
   return `export TZ="${tz.tzName}"; export LANG="en_US.UTF-8"; sudo dscacheutil -flushcache 2>/dev/null || true`;
 }

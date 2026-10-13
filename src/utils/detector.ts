@@ -1,4 +1,9 @@
 import type { DetectionItem, NetworkProfile, OverallResult, RiskLevel } from '../types';
+import {
+  resolveRecommendedTimezone,
+  isTimezoneMatched,
+  getOsQuickFixCommand
+} from './timezoneHelper';
 
 // ==========================================
 // 1. 系统时区检测
@@ -45,16 +50,16 @@ export function detectTimezone(): DetectionItem {
     id: 'timezone',
     title: '系统本地时区 (System Timezone)',
     category: 'timezone',
-    weight: 25,
+    weight: 15,
     score,
     risk,
     value: `${tz} (${offsetStr})`,
     detail,
     impactReason: 'Claude 网页端以及 Claude Code 命令行客户端在运行时，会直接读取操作系统的本地时区设置作为地理位置标识。若出口 IP 是海外但系统时区为东八区，会立即形成冲突。',
-    fixGuide: '建议在电脑系统设置中将时区更改为与代理节点一致的海外时区（如美东 America/New_York 或美西 America/Los_Angeles），并保持网络时间同步。',
-    quickFixCmd: navigator.userAgent.includes('Windows')
-      ? 'tzutil /s "Eastern Standard Time"'
-      : 'sudo systemsetup -settimezone "America/New_York"',
+    fixGuide: risk === 'SAFE'
+      ? '系统时区正常，保持当前配置即可。'
+      : '建议在电脑系统设置中将时区更改为与代理节点一致的海外时区（如美西 America/Los_Angeles、美东 America/New_York 或日本 Asia/Tokyo）。',
+    quickFixCmd: undefined, // 避免在尚未探测到代理节点时盲目推荐时区命令
   };
 }
 
@@ -383,7 +388,8 @@ export function detectIntlAndEmoji(): DetectionItem {
 // 7. 出口 IP 画像与时区交叉校验 (带容灾备用源)
 // ==========================================
 export async function detectIpAndCrossCheck(browserTimezone: string): Promise<{
-  ipItem: DetectionItem;
+  ipCrossItem: DetectionItem;
+  ipLineItem: DetectionItem;
   profile: NetworkProfile;
 }> {
   let profile: NetworkProfile = {
@@ -451,7 +457,7 @@ export async function detectIpAndCrossCheck(browserTimezone: string): Promise<{
       rawData.isp ||
       rawData.org ||
       '';
-    const isDc = /Cloud|Host|Server|Datacenter|Data Center|Oracle|DigitalOcean|Amazon|Google|Alibaba|Tencent|Microsoft|Linode|Vultr|OVH/i.test(
+    const isDc = /Cloud|Host|Server|Datacenter|Data Center|Oracle|DigitalOcean|Amazon|Google|Alibaba|Tencent|Microsoft|Linode|Vultr|OVH|DMIT/i.test(
       ispName
     );
 
@@ -467,7 +473,6 @@ export async function detectIpAndCrossCheck(browserTimezone: string): Promise<{
       status: 'success',
     };
   } else {
-    // 全源失败降级：严谨处理，绝不可在失败时假定为海外并报错时区脱节！
     profile = {
       ip: '未获取到有效 IP',
       country: '网络探测受限',
@@ -481,24 +486,11 @@ export async function detectIpAndCrossCheck(browserTimezone: string): Promise<{
     };
   }
 
-  // 交叉校验：只有成功拿到合法国家码时才进行比对
-  const isChinaBrowserTz = /Asia\/(Shanghai|Chongqing|Urumqi|Harbin)|PRC/i.test(browserTimezone);
-  const hasValidCountry = Boolean(profile.countryCode && profile.countryCode !== 'XX');
-  const isDomesticIp = ['CN', 'HK', 'MO'].includes(profile.countryCode);
-  const isOverseasIp = hasValidCountry && !isDomesticIp;
-
-  // 核心风控点：出口已在海外支持区，但浏览器本地依然为中国时区
-  profile.isTzMismatch = Boolean(hasValidCountry && isOverseasIp && isChinaBrowserTz);
-
-  let risk: RiskLevel = 'SAFE';
-  let score = 100;
-  let detail = '';
-
   if (profile.status === 'failed') {
     return {
-      ipItem: {
+      ipCrossItem: {
         id: 'ip-cross',
-        title: '出口 IP 属地与连通性',
+        title: '出口属地与系统时区一致性',
         category: 'ip',
         weight: 20,
         score: 65,
@@ -507,47 +499,118 @@ export async function detectIpAndCrossCheck(browserTimezone: string): Promise<{
         detail: '未能通过公开接口获取公网 IP 信息。可能是代理未开启全局分流，或当前网络拦截了探测请求。',
         impactReason: 'Claude 服务位于境外，访问时需确保网络能够正常连通海外支持区域。',
         fixGuide: '请检查代理客户端（如 Clash、Sing-box、Surge）是否已正常启动，并建议开启 TUN 虚拟网卡模式或全局代理后重新检测。',
+        quickFixCmd: undefined,
+      },
+      ipLineItem: {
+        id: 'ip-line',
+        title: 'IP 线路属性与纯净度',
+        category: 'ip',
+        weight: 15,
+        score: 65,
+        risk: 'LOW',
+        value: '无法获取线路属性',
+        detail: '公网接口探测受限，暂无法判定当前网络是否属于机房或原生宽带。',
+        impactReason: '机房段 IP 比家庭原生宽带更容易被安全风控系统标记。',
+        fixGuide: '建议在开启全局代理后重新检测环境。',
+        quickFixCmd: undefined,
       },
       profile,
     };
   }
 
-  if (isDomesticIp) {
-    risk = 'CRITICAL';
-    score = 0;
-    detail = `出口 IP 位于中国大陆/港澳地区 (${profile.country})。Claude 暂不支持该地区直连，访问将直接提示 403 限制。`;
-  } else if (profile.isTzMismatch) {
-    risk = 'HIGH';
-    score = 20;
-    detail = `出口节点位于海外 (${profile.country}${profile.city ? ' · ' + profile.city : ''})，但浏览器上报的时区依然为中国时区 (${browserTimezone})。两者存在明显差异。`;
-  } else if (profile.isDatacenter) {
-    risk = 'MEDIUM';
-    score = 55;
-    detail = `出口 IP 属于机房托管线路 (${profile.isp})。此类线路容易被多人共用，安全防护权重略低于家庭原生宽带。`;
-  } else {
-    risk = 'SAFE';
-    score = 100;
-    detail = `出口 IP 位于支持区域 (${profile.country})，且与系统时区配置对应，未发现明显异常。`;
+  // 交叉校验：只有成功拿到合法国家码时才进行比对
+  const hasValidCountry = Boolean(profile.countryCode && profile.countryCode !== 'XX');
+  const isDomesticIp = ['CN', 'HK', 'MO'].includes(profile.countryCode);
+  const isOverseasIp = hasValidCountry && !isDomesticIp;
+
+  // 推荐的目标时区 (支持全量 CLDR 映射)
+  const recTz = resolveRecommendedTimezone(profile.timezone, profile.countryCode, profile.country);
+
+  // 判断是否对齐：
+  let isMatched = false;
+  if (profile.timezone) {
+    isMatched = isTimezoneMatched(browserTimezone, profile.timezone);
+  } else if (isOverseasIp) {
+    isMatched = isTimezoneMatched(browserTimezone, recTz.tzName);
   }
 
+  // 核心风控点：出口已在海外支持区，但浏览器本地时区存在跨区差异
+  profile.isTzMismatch = Boolean(isOverseasIp && !isMatched);
+
+  // 1. 属地与时区一致性项 (ipCrossItem)
+  let crossRisk: RiskLevel = 'SAFE';
+  let crossScore = 100;
+  let crossValue = `${browserTimezone} (时区与节点对齐)`;
+  let crossDetail = `本地系统时区 (${browserTimezone}) 与出口节点物理时区 (${profile.timezone || profile.country}) 完全一致，无跨区时差特征。`;
+  let crossImpact = '平台安全算法会比对客户端上报的本地时区与请求出口 IP 属地。如果两者一致，能极大提高环境可信度并规避跨区风控。';
+  let crossFix = '保持当前匹配的节点与时区设置即可，无需做任何调整。';
+  let crossCmd: string | undefined = undefined;
+
+  if (isDomesticIp) {
+    crossRisk = 'CRITICAL';
+    crossScore = 0;
+    crossValue = `${profile.country} (${profile.ip})`;
+    crossDetail = `出口 IP 位于中国大陆/港澳地区 (${profile.country})。Claude 暂不支持该地区直连，访问将直接提示 403 限制。`;
+    crossImpact = 'Claude 官方仅对特定海外受支持国家开放直连服务。';
+    crossFix = '请开启代理工具并切换至海外受支持节点（如美国、日本、新加坡、英国等）。';
+  } else if (profile.isTzMismatch) {
+    crossRisk = 'HIGH';
+    crossScore = 25;
+    crossValue = `本地: ${browserTimezone} ≠ 节点: ${profile.timezone || profile.country}`;
+    crossDetail = `出口节点位于海外 (${profile.country}${profile.city ? ' · ' + profile.city : ''}，时区: ${profile.timezone || '未知'})，但系统本地时区为 (${browserTimezone})。时区跨区易被平台安全策略识别。`;
+    crossImpact = '当访问请求从海外节点发出，但操作系统或浏览器上报的时间仍为其他区域（如中国东八区）时，平台安全算法很容易识别出“跨区代理访问”特征。';
+    crossFix = `建议将电脑本地时区调整为与节点属地一致的时区（推荐切换为 ${recTz.label}），保持二者逻辑一致。`;
+    crossCmd = getOsQuickFixCommand(recTz.tzName, recTz.winTzId);
+  }
+
+  const ipCrossItem: DetectionItem = {
+    id: 'ip-cross',
+    title: '出口属地与系统时区一致性',
+    category: 'ip',
+    weight: 20,
+    score: crossScore,
+    risk: crossRisk,
+    value: crossValue,
+    detail: crossDetail,
+    impactReason: crossImpact,
+    fixGuide: crossFix,
+    quickFixCmd: crossCmd,
+  };
+
+  // 2. 独立线路属性项 (ipLineItem)
+  let lineRisk: RiskLevel = 'SAFE';
+  let lineScore = 100;
+  let lineValue = `原生家庭/商业宽带 (${profile.isp})`;
+  let lineDetail = `出口 IP 属于原生宽带线路 (${profile.isp})，纯净度与信誉度较高。`;
+  let lineImpact = '原生宽带在平台安全信誉评级中拥有最高权重，不易被识别为批量机器人或滥用代理。';
+  let lineFix = '优质原生宽带，纯净度良好，请继续保持。';
+
+  if (profile.isDatacenter) {
+    lineRisk = 'MEDIUM';
+    lineScore = 55;
+    lineValue = `数据中心机房段 (${profile.isp})`;
+    lineDetail = `出口 IP 属于机房托管线路 (${profile.isp})。此类线路容易被多人共用，安全防护权重略低于家庭原生宽带。`;
+    lineImpact = 'Anthropic 与 Cloudflare 等平台的风控系统会将大型机房段 (ASN) 标记为代理池或服务器机房，机房 IP 相比原生家庭宽带更容易触发验证码、人机验证或封号。';
+    lineFix = '机房线路无法通过修改本地配置解决。如遇高频验证码或限制，建议更换为支持住宅 IP (Residential IP) 或原生家庭宽带的节点。';
+  }
+
+  const ipLineItem: DetectionItem = {
+    id: 'ip-line',
+    title: 'IP 线路属性与纯净度',
+    category: 'ip',
+    weight: 15,
+    score: lineScore,
+    risk: lineRisk,
+    value: lineValue,
+    detail: lineDetail,
+    impactReason: lineImpact,
+    fixGuide: lineFix,
+    quickFixCmd: undefined,
+  };
+
   return {
-    ipItem: {
-      id: 'ip-cross',
-      title: '出口 IP 属地与时区比对',
-      category: 'ip',
-      weight: 20,
-      score,
-      risk,
-      value: `${profile.country} (${profile.ip})`,
-      detail,
-      impactReason: '当访问请求从海外节点发出，但操作系统或浏览器上报的时间仍为中国东八区时，平台安全算法很容易识别出“跨区代理访问”特征。',
-      fixGuide: profile.isTzMismatch
-        ? `建议将电脑本地时区调整为与节点属地相近的时区（推荐切换为美国东部或西部时区），保持二者逻辑一致。`
-        : '保持当前匹配的节点与时区设置即可。',
-      quickFixCmd: navigator.userAgent.includes('Windows')
-        ? 'tzutil /s "Eastern Standard Time"'
-        : 'sudo systemsetup -settimezone "America/New_York"',
-    },
+    ipCrossItem,
+    ipLineItem,
     profile,
   };
 }
