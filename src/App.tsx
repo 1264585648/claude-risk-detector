@@ -44,6 +44,7 @@ import {
 import { generateReportPoster } from './utils/poster';
 import { DarioCompanion } from './components/DarioCompanion';
 import { DiagnosisFixModule } from './components/DiagnosisFixModule';
+import { TopRechargeBanner } from './components/TopRechargeBanner';
 
 const SubscriptionTab = lazy(() =>
   import('./components/SubscriptionTab').then((m) => ({ default: m.SubscriptionTab }))
@@ -149,6 +150,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
+      {/* 顶部公告横幅：AI 代充特惠 */}
+      <TopRechargeBanner />
+
       {/* 顶部通栏导航 */}
       <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
